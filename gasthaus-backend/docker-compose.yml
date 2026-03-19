@@ -14,6 +14,19 @@ services:
     volumes:
       - gasthaus_pgdata:/var/lib/postgresql/data
 
+  mongodb:
+    image: mongo:7-jammy
+    container_name: gasthaus_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: gasthaus
+      MONGO_INITDB_ROOT_PASSWORD: gasthaus123
+      MONGO_INITDB_DATABASE: gasthaus_ai
+    ports:
+      - '27017:27017'
+    volumes:
+      - gasthaus_mongodata:/data/db
+
   pgadmin:
     image: dpage/pgadmin4
     container_name: gasthaus_pgadmin
@@ -28,3 +41,4 @@ services:
 
 volumes:
   gasthaus_pgdata:
+  gasthaus_mongodata:
