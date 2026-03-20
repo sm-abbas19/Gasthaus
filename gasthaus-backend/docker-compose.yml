@@ -39,6 +39,16 @@ services:
     depends_on:
       - postgres
 
+  redis:
+    image: redis:7-alpine
+    container_name: gasthaus_redis
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    volumes:
+      - gasthaus_redisdata:/var/lib/redis/data
+
 volumes:
   gasthaus_pgdata:
   gasthaus_mongodata:
+  gasthaus_redisdata:
