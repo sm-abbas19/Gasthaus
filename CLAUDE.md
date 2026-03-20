@@ -6,9 +6,10 @@ management system. It connects to a NestJS backend on localhost:3001 and
 a FastAPI AI service on localhost:8000.
 
 ## Tech Stack
-- Next.js 14 with App Router
+- Next.js 16 with App Router
 - TypeScript
-- Tailwind CSS
+- React 19
+- Tailwind CSS v4 (CSS-based config via @theme in globals.css — no tailwind.config.js)
 - shadcn/ui components
 - Socket.io client for real-time updates
 - Axios for API calls
