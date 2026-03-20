@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gasthaus Admin - Menu Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary": "#5f5e60",
+              "outline-variant": "#dbc2b0",
+              "on-primary-fixed": "#2f1500",
+              "on-secondary-container": "#636264",
+              "surface-container-highest": "#e2e3e1",
+              "on-tertiary-container": "#fdfcfc",
+              "tertiary-fixed-dim": "#c7c6c6",
+              "on-primary": "#ffffff",
+              "on-secondary": "#ffffff",
+              "on-primary-container": "#fffbff",
+              "inverse-primary": "#ffb77d",
+              "primary-fixed": "#ffdcc3",
+              "inverse-surface": "#2f3130",
+              "outline": "#887364",
+              "tertiary-fixed": "#e3e2e2",
+              "on-surface-variant": "#554336",
+              "background": "#f9f9f7",
+              "on-secondary-fixed": "#1b1b1d",
+              "on-error": "#ffffff",
+              "secondary-fixed": "#e4e2e4",
+              "on-primary-fixed-variant": "#6e3900",
+              "surface-tint": "#904d00",
+              "surface-container-high": "#e8e8e6",
+              "secondary-fixed-dim": "#c8c6c8",
+              "surface-container-low": "#f4f4f2",
+              "primary": "#8d4b00",
+              "on-surface": "#1a1c1b",
+              "on-background": "#1a1c1b",
+              "on-secondary-fixed-variant": "#474649",
+              "surface-bright": "#f9f9f7",
+              "surface-variant": "#e2e3e1",
+              "on-tertiary-fixed-variant": "#464747",
+              "error-container": "#ffdad6",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#eeeeec",
+              "on-tertiary": "#ffffff",
+              "tertiary": "#5b5c5c",
+              "secondary-container": "#e2dfe1",
+              "surface": "#f9f9f7",
+              "on-error-container": "#93000a",
+              "inverse-on-surface": "#f1f1ef",
+              "primary-fixed-dim": "#ffb77d",
+              "on-tertiary-fixed": "#1a1c1c",
+              "tertiary-container": "#747575",
+              "error": "#ba1a1a",
+              "primary-container": "#b15f00",
+              "surface-dim": "#dadad8"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom scrollbar for a cleaner look */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #dbc2b0; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex h-screen overflow-hidden">
+<!-- Column 1: SideNavBar -->
+<aside class="bg-[#1C1C1E] dark:bg-[#1C1C1E] h-screen w-64 fixed left-0 top-0 font-['Inter'] tracking-tight flex flex-col h-full py-8 px-4 z-50">
+<div class="mb-10 px-2">
+<h1 class="text-xl font-light tracking-[0.15em] text-white uppercase">Gasthaus</h1>
+<p class="text-xs text-gray-500 mt-1 uppercase tracking-widest">Admin Portal</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#D97706] font-semibold bg-white/5 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="text-sm">Menu Management</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="reorder">reorder</span>
+<span class="text-sm">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="monitoring">monitoring</span>
+<span class="text-sm">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="text-sm">Staff</span>
+</a>
+</nav>
+<div class="pt-6 border-t border-white/10 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="text-sm">Settings</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-400 hover:text-gray-200 hover:bg-white/5 transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="text-sm">Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Wrapper -->
+<main class="ml-64 flex flex-col flex-1 h-screen relative">
+<!-- TopNavBar -->
+<header class="h-16 bg-[#f9f9f7] dark:bg-[#1b1b1d] border-b border-[#dbc2b0]/20 flex justify-between items-center px-8 z-40 sticky top-0">
+<div class="flex items-center gap-6">
+<h2 class="text-lg font-semibold text-[#1b1b1d] dark:text-white">Menu Management</h2>
+<nav class="hidden md:flex gap-6 font-['Inter'] text-sm font-medium">
+<a class="text-[#8d4b00] border-b-2 border-[#8d4b00] pb-1" href="#">Lunch</a>
+<a class="text-gray-500 hover:text-[#8d4b00] transition-all" href="#">Dinner</a>
+<a class="text-gray-500 hover:text-[#8d4b00] transition-all" href="#">Drinks</a>
+<a class="text-gray-500 hover:text-[#8d4b00] transition-all" href="#">Desserts</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="absolute inset-y-0 left-3 flex items-center text-gray-400">
+<span class="material-symbols-outlined text-sm" data-icon="search">search</span>
+</span>
+<input class="pl-9 pr-4 py-1.5 bg-surface-container-low border-none rounded-lg text-sm focus:ring-1 focus:ring-primary w-64 transition-all" placeholder="Search menu..." type="text"/>
+</div>
+<button class="text-gray-500 hover:text-[#8d4b00] transition-all p-2 rounded-full">
+<span class="material-symbols-outlined" data-icon="calendar_today">calendar_today</span>
+</button>
+<button class="text-gray-500 hover:text-[#8d4b00] transition-all p-2 rounded-full relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white"></span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:opacity-90">
+                    AD
+                </div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Column 2: Category Filter Panel -->
+<aside class="w-[200px] bg-white border-r border-[#E5E7EB] flex flex-col py-6 overflow-y-auto shrink-0">
+<div class="px-6 mb-4">
+<h3 class="text-[10px] font-bold text-secondary uppercase tracking-widest">Categories</h3>
+</div>
+<div class="space-y-1 px-3">
+<button class="w-full flex justify-between items-center px-3 py-2 bg-primary/5 text-primary font-semibold rounded-lg text-sm">
+<span>All Items</span>
+<span class="text-xs bg-white px-1.5 py-0.5 rounded border border-primary/20">12</span>
+</button>
+<button class="w-full flex justify-between items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg text-sm transition-colors">
+<span>Main Course</span>
+<span class="text-xs text-gray-400">5</span>
+</button>
+<button class="w-full flex justify-between items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg text-sm transition-colors">
+<span>Drinks</span>
+<span class="text-xs text-gray-400">3</span>
+</button>
+<button class="w-full flex justify-between items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg text-sm transition-colors">
+<span>Starters</span>
+<span class="text-xs text-gray-400">2</span>
+</button>
+<button class="w-full flex justify-between items-center px-3 py-2 text-on-surface-variant hover:bg-surface-container-low rounded-lg text-sm transition-colors">
+<span>Desserts</span>
+<span class="text-xs text-gray-400">2</span>
+</button>
+</div>
+<div class="mt-6 px-3">
+<button class="w-full flex items-center justify-center gap-2 px-3 py-2.5 border-2 border-dashed border-[#E5E7EB] rounded-lg text-secondary hover:border-primary hover:text-primary transition-all text-xs font-medium">
+<span class="material-symbols-outlined text-sm" data-icon="add">add</span>
+                        Add Category
+                    </button>
+</div>
+</aside>
+<!-- Column 3: Main Content Area -->
+<section class="flex-1 bg-surface-container-low p-8 overflow-y-auto">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-lg font-semibold text-on-surface">Menu Items</h3>
+<p class="text-sm text-secondary">Showing 12 items across all categories</p>
+</div>
+<div class="flex bg-white rounded-lg p-1 border border-outline-variant/20">
+<button class="p-1.5 bg-surface-container-low rounded text-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="grid_view">grid_view</span>
+</button>
+<button class="p-1.5 text-secondary hover:text-primary">
+<span class="material-symbols-outlined text-[20px]" data-icon="view_list">view_list</span>
+</button>
+</div>
+</div>
+<!-- MENU ITEM GRID -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Card 1: Chicken Karahi -->
+<div class="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden group cursor-pointer ring-2 ring-primary">
+<div class="h-[140px] bg-surface-container overflow-hidden">
+<img alt="Chicken Karahi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Traditional spicy chicken karahi in a wok" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD03wTmPVeU1AjnSRQ4by_4ESYrFi3fJZr60GijLJRVabaaroazBC1j5O7MZ85x1bQiL7KoS3i9eHD8Z4ONHcqGN5R3u5gGtzUUeNeWN1xWFc5scTlfvNRt2g-8FBB3FL79iHogKGYARWOYzncgxfWouKfUcRx8mGfeEWaaakrehUAt0bbPOQEsRrdCG6KiX0yODuD-tLPxQkLEvFxWCd4CTerx23ZcMokteHLt23ehtrn3DY8bWGIuwsMI3NjC0Ql1bkXWwfmJW2g"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-semibold text-on-surface">Chicken Karahi</h4>
+<span class="font-bold text-primary">Rs. 850</span>
+</div>
+<p class="text-xs text-secondary mb-4 uppercase tracking-tighter">Main Course</p>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<span class="text-[10px] font-bold text-emerald-600 uppercase">Available</span>
+<div class="w-8 h-4 bg-primary rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-white rounded-full ml-auto"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2: Biryani -->
+<div class="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden group cursor-pointer hover:border-primary/40 transition-colors">
+<div class="h-[140px] bg-surface-container overflow-hidden">
+<img alt="Biryani" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Steaming plate of aromatic chicken biryani" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAtihHA2hK3hNOUV-XtC_I9iBJgeHjErXA7CcPgM5E7uLtR795Ocr3Jw10qMkEUcdgXE7U6oefNHIKxxtvQvEPSbw4gHXr4lCFEffuN7uCEAFpvlxMqL1KdtEljFFmBdQeS1tRanzNObTd9s5L3oXgu5kQG6AExlX5vynvKYIiX0tqjlWfGjQ9anbHHPXto3HR6kRgsPlXfdYf28BassoG-EA5qT0Y_JmSzNO0ax0Ut2DGH1Dnnw0PVquVUjV_7p4BwUDfJgzrUaTw"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-semibold text-on-surface">Biryani</h4>
+<span class="font-bold text-primary">Rs. 650</span>
+</div>
+<p class="text-xs text-secondary mb-4 uppercase tracking-tighter">Main Course</p>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<span class="text-[10px] font-bold text-emerald-600 uppercase">Available</span>
+<div class="w-8 h-4 bg-primary rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-white rounded-full ml-auto"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 3: Seekh Kebab -->
+<div class="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden group cursor-pointer hover:border-primary/40 transition-colors">
+<div class="h-[140px] bg-surface-container overflow-hidden">
+<img alt="Seekh Kebab" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Grilled seekh kebabs on a platter" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB517drbDNauSFqJKSpbpAk8RTEOleyj_wYsD9tWOwaHIDcY8ldRRUffmhdbp01Bgvc0M0JTXa88duvEEtMPWCmwcgIY35BitjJXNNOrHHZJY-_ynWLQug3StNr2hGbopTQBj5vjSaH4il9QYvkVXxEwY-EK4UXzyO4E8VxPKPuHpLhZpfvGpE4EAMZnJw839vzfYcnTYxBa_dUbqxce9RFnOm1iqHOar0sL_8Yiyn8pcAD73Y_swsvA7AH3ucuZLzsiBsuOtCjOuQ"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-semibold text-on-surface">Seekh Kebab</h4>
+<span class="font-bold text-primary">Rs. 450</span>
+</div>
+<p class="text-xs text-secondary mb-4 uppercase tracking-tighter">Starters</p>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<span class="text-[10px] font-bold text-emerald-600 uppercase">Available</span>
+<div class="w-8 h-4 bg-primary rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-white rounded-full ml-auto"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 4: Garlic Naan -->
+<div class="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden group cursor-pointer hover:border-primary/40 transition-colors">
+<div class="h-[140px] bg-surface-container overflow-hidden">
+<img alt="Garlic Naan" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Buttery garlic naan bread pieces" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBm7zHrQpHZbtLWIB4IyvseNFbCONqUd6AiffeIT8DHhmMBCprYuCshnpoyTVQuA6OAI4D2d2flSxpxjcKX48vbrqlQY4uQxF9TN3LShD79MEQ342QdajciZJpuDmQDcGx0iuzetmfDuyiMj2Vj_S0DZyYV2W19IW01gwi3B-tCu3xO2jJBsOJcvC8HsWThD9dUCmaxpWaAXIBoWccHD2ZvB9aLUiaBaJ-I39usabpZ1_PW8uF-qAKsfOkCDNwTXodtzG_iDthR83U"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-semibold text-on-surface">Garlic Naan</h4>
+<span class="font-bold text-primary">Rs. 120</span>
+</div>
+<p class="text-xs text-secondary mb-4 uppercase tracking-tighter">Main Course</p>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<span class="text-[10px] font-bold text-emerald-600 uppercase">Available</span>
+<div class="w-8 h-4 bg-primary rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-white rounded-full ml-auto"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 5: Mango Lassi (UNAVAILABLE) -->
+<div class="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden group cursor-pointer transition-opacity opacity-60">
+<div class="h-[140px] bg-surface-container overflow-hidden grayscale">
+<img alt="Mango Lassi" class="w-full h-full object-cover" data-alt="Cold mango lassi in a glass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQ2-P_0P-VRR2EpBnhkgnA7odeI61pH8fw5bkuTDeY8g-0rWMNv-pOBUDJldbSqfdIWovdja0NiZXo7b6WLYKIfJ99bfEsEZOJNIAaaL6DA1hMLwnRn5b0T7rjCHEnT0vY7mz-yVTpdk4SC-3lsCT7x1mPssDXpHi8hgW0PCAibE1TQ0O4GgY2fXEk0p-kNfNN5i-nI5FNusD-4blrmstLEyA1ChhRqv_k1Kd_4OJT4RG8Nzbq4EGmeyA-NAWBYPjLaAOM4JPBviA"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-semibold text-on-surface">Mango Lassi</h4>
+<span class="font-bold text-primary">Rs. 200</span>
+</div>
+<p class="text-xs text-secondary mb-4 uppercase tracking-tighter">Drinks</p>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<span class="text-[10px] font-bold text-gray-400 uppercase">Unavailable</span>
+<div class="w-8 h-4 bg-gray-200 rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-white rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 6: Gulab Jamun -->
+<div class="bg-white border border-[#E5E7EB] rounded-lg overflow-hidden group cursor-pointer hover:border-primary/40 transition-colors">
+<div class="h-[140px] bg-surface-container overflow-hidden">
+<img alt="Gulab Jamun" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="Sweet syrupy gulab jamun balls" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJJ0Aow35zFRwe9pxWoE1PZElMUXUJRiDwYirstlly_G_Vuht2gVGqkLopc8s88ttpsmUOPT4b0QM9OkA8GQznYp59lY8iJHghpX9qa-K0KqJV8vgBM9ESN6Mlq5_eF3FlWIL3X_TzV4rWAVj6yPY46tCS23WcO8Scq8z84RkbbjTN8XiVyTI8s0Uc7Rz1jdZIHnNURi9zJOCGc6Y8fD0Wrwvje0eM8DIcMldbz4a2bSWX4pOcbZNM_2k3XYj9nLXYN-wL1l8yxng"/>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-1">
+<h4 class="font-semibold text-on-surface">Gulab Jamun</h4>
+<span class="font-bold text-primary">Rs. 180</span>
+</div>
+<p class="text-xs text-secondary mb-4 uppercase tracking-tighter">Desserts</p>
+<div class="flex items-center justify-between pt-3 border-t border-surface-container">
+<span class="text-[10px] font-bold text-emerald-600 uppercase">Available</span>
+<div class="w-8 h-4 bg-primary rounded-full relative flex items-center px-0.5">
+<div class="w-3 h-3 bg-white rounded-full ml-auto"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Column 4: Edit Panel -->
+<aside class="w-[360px] bg-white border-l border-[#E5E7EB] flex flex-col p-6 overflow-y-auto shrink-0 shadow-[-4px_0_10px_rgba(0,0,0,0.02)]">
+<div class="flex items-center justify-between mb-8">
+<h3 class="font-semibold text-on-surface">Edit Item: Chicken Karahi</h3>
+<button class="text-secondary hover:text-on-surface">
+<span class="material-symbols-outlined text-xl" data-icon="close">close</span>
+</button>
+</div>
+<form class="space-y-6">
+<!-- Image Upload -->
+<div>
+<label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Item Image</label>
+<div class="aspect-video border-2 border-dashed border-[#E5E7EB] rounded-lg flex flex-col items-center justify-center bg-surface-container-low group cursor-pointer hover:border-primary transition-all overflow-hidden relative">
+<img alt="Chicken Karahi Preview" class="absolute inset-0 w-full h-full object-cover opacity-30" data-alt="Chicken karahi edit preview" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcpqwWp5bIxi5Jakat5FSiHJT6bt58QWBf-f9iFZRwL5ALBVfMFr2LFfvpA2KIKSCSFgE_3PI1RfuYGr-saOhWoxI-Y_B63_J5ita9wQFYmd0L3uFTZkHdCsaFRZO2OIjFAvT88xB37K7cTmK7IieFwfL5tXj2MZwePiS1FkN5Bz8iy1LJb0XrZHNfBotSj27hl0nqJC9zNZ0lSMltVt_V2J3ZmsVoe2jPpYBnRXbK0UZBmxrIxZrK1aUKMPJzQibHE1HQhA_NJ54"/>
+<span class="material-symbols-outlined text-secondary group-hover:text-primary transition-colors relative z-10" data-icon="cloud_upload">cloud_upload</span>
+<p class="text-[10px] text-secondary mt-1 font-medium relative z-10">Upload new image</p>
+</div>
+</div>
+<!-- Basic Info -->
+<div>
+<label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Item Name</label>
+<input class="w-full border-0 border-b border-[#E5E7EB] focus:ring-0 focus:border-primary text-sm font-medium px-0 py-2" type="text" value="Chicken Karahi"/>
+</div>
+<div>
+<label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Description</label>
+<textarea class="w-full border-0 border-b border-[#E5E7EB] focus:ring-0 focus:border-primary text-sm px-0 py-2 resize-none" rows="3">Spicy chicken cooked with ginger, garlic and special house spices in a traditional karahi wok.</textarea>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<div>
+<label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Price (Rs.)</label>
+<input class="w-full border-0 border-b border-[#E5E7EB] focus:ring-0 focus:border-primary text-sm font-medium px-0 py-2" type="number" value="850"/>
+</div>
+<div>
+<label class="block text-xs font-bold text-secondary uppercase tracking-widest mb-2">Category</label>
+<select class="w-full border-0 border-b border-[#E5E7EB] focus:ring-0 focus:border-primary text-sm font-medium px-0 py-2 bg-transparent">
+<option>Main Course</option>
+<option>Drinks</option>
+<option>Starters</option>
+<option>Desserts</option>
+</select>
+</div>
+</div>
+<div class="flex items-center justify-between py-4 border-y border-surface-container">
+<div>
+<p class="text-sm font-semibold text-on-surface">Availability</p>
+<p class="text-xs text-secondary">Item visible on customer menu</p>
+</div>
+<div class="w-10 h-5 bg-primary rounded-full relative flex items-center px-1">
+<div class="w-3.5 h-3.5 bg-white rounded-full ml-auto"></div>
+</div>
+</div>
+<div class="pt-4 space-y-3">
+<button class="w-full bg-primary text-white py-3 rounded-lg text-sm font-bold tracking-tight hover:bg-primary-container transition-colors" type="submit">
+                            Save Changes
+                        </button>
+<button class="w-full bg-white border border-[#E5E7EB] text-secondary py-3 rounded-lg text-sm font-bold tracking-tight hover:bg-surface-container-low transition-colors" type="button">
+                            Discard
+                        </button>
+</div>
+<div class="pt-6">
+<button class="w-full flex items-center justify-center gap-2 text-error text-[11px] font-bold uppercase tracking-widest hover:underline" type="button">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+                            Remove from Menu
+                        </button>
+</div>
+</form>
+</aside>
+</div>
+</main>
+</body></html>

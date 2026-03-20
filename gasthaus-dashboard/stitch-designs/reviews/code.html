@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Reviews | Gasthaus</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "secondary-fixed": "#e4e2e4",
+              "surface-dim": "#dadad8",
+              "secondary": "#5f5e60",
+              "on-primary-container": "#fffbff",
+              "inverse-surface": "#2f3130",
+              "surface-tint": "#904d00",
+              "outline-variant": "#dbc2b0",
+              "surface": "#f9f9f7",
+              "tertiary-container": "#747575",
+              "surface-container-low": "#f4f4f2",
+              "on-secondary-container": "#636264",
+              "error": "#ba1a1a",
+              "tertiary": "#5b5c5c",
+              "on-secondary-fixed": "#1b1b1d",
+              "surface-container-high": "#e8e8e6",
+              "on-primary-fixed-variant": "#6e3900",
+              "on-tertiary": "#ffffff",
+              "on-primary": "#ffffff",
+              "on-tertiary-fixed": "#1a1c1c",
+              "inverse-primary": "#ffb77d",
+              "on-surface-variant": "#554336",
+              "surface-container-lowest": "#ffffff",
+              "error-container": "#ffdad6",
+              "outline": "#887364",
+              "surface-container": "#eeeeec",
+              "surface-container-highest": "#e2e3e1",
+              "primary": "#8d4b00",
+              "on-primary-fixed": "#2f1500",
+              "tertiary-fixed-dim": "#c7c6c6",
+              "on-surface": "#1a1c1b",
+              "secondary-container": "#e2dfe1",
+              "secondary-fixed-dim": "#c8c6c8",
+              "on-error-container": "#93000a",
+              "on-background": "#1a1c1b",
+              "tertiary-fixed": "#e3e2e2",
+              "on-secondary-fixed-variant": "#474649",
+              "background": "#f9f9f7",
+              "inverse-on-surface": "#f1f1ef",
+              "primary-fixed-dim": "#ffb77d",
+              "primary-fixed": "#ffdcc3",
+              "surface-bright": "#f9f9f7",
+              "primary-container": "#b15f00",
+              "on-error": "#ffffff",
+              "on-tertiary-fixed-variant": "#464747",
+              "on-secondary": "#ffffff",
+              "on-tertiary-container": "#fdfcfc",
+              "surface-variant": "#e2e3e1"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e3e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen">
+<!-- SideNavBar -->
+<aside class="bg-[#1C1C1E] h-screen w-64 fixed left-0 top-0 overflow-y-auto flex flex-col py-8 px-0 z-50">
+<div class="mb-10 px-6 flex items-center gap-3">
+<span class="material-symbols-outlined text-[#D97706] text-2xl">restaurant</span>
+<h1 class="text-white text-[13px] font-semibold tracking-[0.3em]">GASTHAUS</h1>
+</div>
+<nav class="flex-1 space-y-1">
+<!-- Dashboard -->
+<a class="flex items-center gap-3 px-6 py-3 text-gray-400 hover:text-gray-200 transition-colors hover:bg-white/5 group" href="#">
+<span class="material-symbols-outlined text-lg">dashboard</span>
+<span class="font-inter text-sm">Dashboard</span>
+</a>
+<!-- Orders -->
+<a class="flex items-center gap-3 px-6 py-3 text-gray-400 hover:text-gray-200 transition-colors hover:bg-white/5 group" href="#">
+<span class="material-symbols-outlined text-lg">receipt_long</span>
+<span class="font-inter text-sm">Orders</span>
+</a>
+<!-- Kitchen -->
+<a class="flex items-center gap-3 px-6 py-3 text-gray-400 hover:text-gray-200 transition-colors hover:bg-white/5 group" href="#">
+<span class="material-symbols-outlined text-lg">restaurant_menu</span>
+<span class="font-inter text-sm">Kitchen</span>
+</a>
+<!-- Menu -->
+<a class="flex items-center gap-3 px-6 py-3 text-gray-400 hover:text-gray-200 transition-colors hover:bg-white/5 group" href="#">
+<span class="material-symbols-outlined text-lg">menu_book</span>
+<span class="font-inter text-sm">Menu</span>
+</a>
+<!-- Tables -->
+<a class="flex items-center gap-3 px-6 py-3 text-gray-400 hover:text-gray-200 transition-colors hover:bg-white/5 group" href="#">
+<span class="material-symbols-outlined text-lg">table_bar</span>
+<span class="font-inter text-sm">Tables</span>
+</a>
+<!-- Reviews (ACTIVE) -->
+<a class="flex items-center gap-3 px-6 py-3 text-white border-l-2 border-[#D97706] bg-[#2C2C2C] group" href="#">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">rate_review</span>
+<span class="font-inter text-sm font-medium">Reviews</span>
+</a>
+<!-- Insights -->
+<a class="flex items-center gap-3 px-6 py-3 text-gray-400 hover:text-gray-200 transition-colors hover:bg-white/5 group" href="#">
+<span class="material-symbols-outlined text-lg">insights</span>
+<span class="font-inter text-sm">Insights</span>
+</a>
+</nav>
+<div class="mt-auto px-6 py-6 border-t border-white/10 flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-[#D97706] flex items-center justify-center text-[11px] font-bold text-white shrink-0">AD</div>
+<div class="flex flex-col">
+<span class="text-[13px] text-white font-medium">Admin</span>
+<span class="text-[11px] text-[#9CA3AF]">Manager</span>
+</div>
+</div>
+</aside>
+<!-- TopNavBar -->
+<header class="fixed top-0 right-0 w-[calc(100%-16rem)] h-[56px] z-40 bg-white border-b border-[#E5E7EB] flex justify-between items-center px-10">
+<div class="flex items-center gap-4">
+<h2 class="text-[16px] font-semibold text-[#1C1C1E]">Reviews</h2>
+</div>
+<div class="flex items-center gap-6">
+<span class="font-inter text-[13px] text-[#6B6B6B]">Thursday, 20 March 2026</span>
+<button class="relative text-[#6B6B6B] hover:text-[#1C1C1E] transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+<span class="absolute top-0 right-0 w-1.5 h-1.5 bg-[#D97706] rounded-full"></span>
+</button>
+<div class="w-8 h-8 rounded-full bg-[#D97706] flex items-center justify-center text-[10px] font-bold text-white shrink-0 cursor-pointer">AD</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="ml-64 pt-[80px] pb-12 px-10 min-h-screen">
+<div class="max-w-7xl mx-auto flex gap-10">
+<!-- Left Column (65%) -->
+<section class="w-[65%] space-y-8">
+<!-- Filter Bar -->
+<div class="bg-surface-container-lowest border border-outline-variant/20 rounded-xl p-4 flex items-center justify-between">
+<div class="flex items-center gap-4">
+<select class="bg-surface text-sm font-medium border-none focus:ring-0 text-on-surface-variant cursor-pointer py-1 px-3 rounded">
+<option>Menu Item: All Items</option>
+<option>Chicken Karahi</option>
+<option>Mutton Handi</option>
+</select>
+<select class="bg-surface text-sm font-medium border-none focus:ring-0 text-on-surface-variant cursor-pointer py-1 px-3 rounded">
+<option>Star Rating: All Ratings</option>
+<option>5 Stars</option>
+<option>4 Stars</option>
+</select>
+<select class="bg-surface text-sm font-medium border-none focus:ring-0 text-on-surface-variant cursor-pointer py-1 px-3 rounded">
+<option>Date: Last 30 Days</option>
+<option>Last 7 Days</option>
+<option>Custom Range</option>
+</select>
+</div>
+<div class="flex items-center gap-6">
+<span class="text-xs text-gray-400 font-medium">Showing 8 reviews</span>
+<div class="flex items-center gap-1 text-primary cursor-pointer hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-sm">sort</span>
+<span class="text-xs font-bold uppercase tracking-widest">Latest First</span>
+</div>
+</div>
+</div>
+<!-- Reviews List -->
+<div class="space-y-6">
+<!-- Review Card 1 (Attention Case) -->
+<div class="bg-surface-container-lowest border-l-[3px] border-error rounded-xl p-6 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#FEF3C7] flex items-center justify-center text-primary font-bold">HM</div>
+<div>
+<h4 class="font-bold text-on-surface">Hassan M.</h4>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] bg-surface-container-high px-2 py-0.5 rounded text-secondary font-bold uppercase tracking-wider">Mutton Handi</span>
+<div class="flex text-amber-500">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+</div>
+</div>
+</div>
+</div>
+<span class="text-xs text-gray-400 font-medium">2 hours ago</span>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">
+                            The flavor was authentic, but the meat was quite tough today. Usually it's much better. I hope this was just a one-off issue.
+                        </p>
+<div class="flex items-center justify-between border-t border-outline-variant/10 pt-4">
+<span class="text-[10px] font-mono text-gray-400">Order ID: #GH-29482</span>
+<button class="flex items-center gap-1 text-[#6B6B6B] text-[12px] font-medium hover:text-[#1C1C1E] transition-colors">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+                                Reply
+                            </button>
+</div>
+</div>
+<!-- Review Card 2 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-6 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#DBEAFE] flex items-center justify-center text-blue-600 font-bold">AK</div>
+<div>
+<h4 class="font-bold text-on-surface">Ali Khan</h4>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] bg-surface-container-high px-2 py-0.5 rounded text-secondary font-bold uppercase tracking-wider">Chicken Karahi</span>
+<div class="flex text-amber-500">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+</div>
+<span class="text-xs text-gray-400 font-medium">5 hours ago</span>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">
+                            Absolutely stellar! The spices were perfectly balanced and it was served piping hot. Best Karahi in the city, hands down.
+                        </p>
+<div class="flex items-center justify-between border-t border-outline-variant/10 pt-4">
+<span class="text-[10px] font-mono text-gray-400">Order ID: #GH-29475</span>
+<span class="text-[#059669] text-[10px] font-bold uppercase tracking-widest flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                REPLIED ✓
+                            </span>
+</div>
+</div>
+<!-- Review Card 3 -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-6 transition-all duration-300">
+<div class="flex justify-between items-start mb-4">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-[#D1FAE5] flex items-center justify-center text-green-600 font-bold">FS</div>
+<div>
+<h4 class="font-bold text-on-surface">Fatima S.</h4>
+<div class="flex items-center gap-2 mt-1">
+<span class="text-[10px] bg-surface-container-high px-2 py-0.5 rounded text-secondary font-bold uppercase tracking-wider">Garlic Naan</span>
+<div class="flex text-amber-500">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+</div>
+</div>
+</div>
+</div>
+<span class="text-xs text-gray-400 font-medium">Yesterday</span>
+</div>
+<p class="text-on-surface-variant text-sm leading-relaxed mb-6">
+                            Great taste but a bit oily! The Naan was soft and buttery though. Would order again.
+                        </p>
+<div class="flex items-center justify-between border-t border-outline-variant/10 pt-4">
+<span class="text-[10px] font-mono text-gray-400">Order ID: #GH-29460</span>
+<button class="flex items-center gap-1 text-[#6B6B6B] text-[12px] font-medium hover:text-[#1C1C1E] transition-colors">
+<span class="material-symbols-outlined text-[16px]">reply</span>
+                                Reply
+                            </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Column (35%) -->
+<aside class="w-[35%] space-y-8">
+<!-- Rating Overview Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-8">
+<h3 class="font-inter tracking-[0.15em] uppercase text-[10px] font-bold text-secondary mb-6">Rating Overview</h3>
+<div class="flex items-end gap-4 mb-8">
+<span class="text-6xl font-light text-on-surface leading-none">4.2</span>
+<div class="flex flex-col pb-1">
+<div class="flex text-amber-500 mb-1">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 0.5;">star_half</span>
+</div>
+<span class="text-xs text-gray-400 font-medium">Based on 127 reviews</span>
+</div>
+</div>
+<div class="space-y-4">
+<!-- 5 Star -->
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-bold text-gray-400 w-4">5★</span>
+<div class="flex-1 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 w-[72%]"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface w-8 text-right">92</span>
+</div>
+<!-- 4 Star -->
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-bold text-gray-400 w-4">4★</span>
+<div class="flex-1 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 w-[15%]"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface w-8 text-right">19</span>
+</div>
+<!-- 3 Star -->
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-bold text-gray-400 w-4">3★</span>
+<div class="flex-1 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 w-[8%]"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface w-8 text-right">10</span>
+</div>
+<!-- 2 Star -->
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-bold text-gray-400 w-4">2★</span>
+<div class="flex-1 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 w-[3%]"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface w-8 text-right">4</span>
+</div>
+<!-- 1 Star -->
+<div class="flex items-center gap-4">
+<span class="text-[10px] font-bold text-gray-400 w-4">1★</span>
+<div class="flex-1 h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-amber-500 w-[2%]"></div>
+</div>
+<span class="text-[10px] font-bold text-on-surface w-8 text-right">2</span>
+</div>
+</div>
+</div>
+<!-- Item Performance Card -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-8">
+<h3 class="font-inter tracking-[0.15em] uppercase text-[10px] font-bold text-secondary mb-6">Item Performance</h3>
+<div class="space-y-5">
+<div class="flex items-center justify-between group cursor-pointer">
+<span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Chicken Karahi</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold">4.8</span>
+</div>
+</div>
+<div class="flex items-center justify-between group cursor-pointer">
+<span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Beef Biryani</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold">4.6</span>
+</div>
+</div>
+<div class="flex items-center justify-between group cursor-pointer">
+<span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Mutton Handi</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold">4.1</span>
+</div>
+</div>
+<div class="flex items-center justify-between group cursor-pointer">
+<span class="text-sm font-medium text-on-surface group-hover:text-primary transition-colors">Garlic Naan</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold">4.9</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sentiment Indicator -->
+<div class="bg-surface-container-lowest border border-outline-variant/10 rounded-xl p-8">
+<h3 class="font-inter tracking-[0.15em] uppercase text-[10px] font-bold text-secondary mb-6">Sentiment Analysis</h3>
+<div class="flex items-center gap-2">
+<div class="flex items-center bg-[#D1FAE5] text-[#059669] text-[11px] font-semibold px-3 py-1 rounded">
+                            82 Positive
+                        </div>
+<div class="flex items-center bg-[#F3F4F6] text-[#6B6B6B] text-[11px] font-semibold px-3 py-1 rounded">
+                            29 Neutral
+                        </div>
+<div class="flex items-center bg-[#FEE2E2] text-[#EF4444] text-[11px] font-semibold px-3 py-1 rounded">
+                            16 Negative
+                        </div>
+</div>
+</div>
+<!-- Quick Insight -->
+<div class="bg-primary/5 rounded-xl p-6 border border-primary/10">
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-primary">auto_awesome</span>
+<div>
+<h4 class="text-xs font-bold text-primary uppercase tracking-widest mb-1">Archivist Insight</h4>
+<p class="text-[11px] leading-relaxed text-on-surface-variant">
+                                48% of recent reviews mention "Slow Service" during peak hours (7pm - 9pm). Consider optimizing kitchen staffing for these shifts.
+                            </p>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+</body></html>

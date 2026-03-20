@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>GASTHAUS - AI Insights &amp; Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "tertiary-container": "#747575",
+              "on-primary-container": "#fffbff",
+              "outline-variant": "#dbc2b0",
+              "on-error-container": "#93000a",
+              "primary-fixed": "#ffdcc3",
+              "tertiary": "#5b5c5c",
+              "on-tertiary-fixed": "#1a1c1c",
+              "on-tertiary": "#ffffff",
+              "surface-container-high": "#e8e8e6",
+              "on-background": "#1a1c1b",
+              "surface-container-low": "#f4f4f2",
+              "on-primary-fixed": "#2f1500",
+              "primary-container": "#b15f00",
+              "error": "#ba1a1a",
+              "on-secondary-container": "#636264",
+              "on-surface-variant": "#554336",
+              "surface-bright": "#f9f9f7",
+              "surface-container-highest": "#e2e3e1",
+              "on-error": "#ffffff",
+              "surface-variant": "#e2e3e1",
+              "background": "#f9f9f7",
+              "tertiary-fixed-dim": "#c7c6c6",
+              "secondary-fixed-dim": "#c8c6c8",
+              "outline": "#887364",
+              "inverse-on-surface": "#f1f1ef",
+              "on-tertiary-container": "#fdfcfc",
+              "on-primary": "#ffffff",
+              "secondary-container": "#e2dfe1",
+              "on-tertiary-fixed-variant": "#464747",
+              "primary": "#8d4b00",
+              "surface-dim": "#dadad8",
+              "inverse-surface": "#2f3130",
+              "secondary": "#5f5e60",
+              "on-surface": "#1a1c1b",
+              "secondary-fixed": "#e4e2e4",
+              "error-container": "#ffdad6",
+              "surface-tint": "#904d00",
+              "surface": "#f9f9f7",
+              "on-secondary-fixed": "#1b1b1d",
+              "surface-container": "#eeeeec",
+              "primary-fixed-dim": "#ffb77d",
+              "tertiary-fixed": "#e3e2e2",
+              "on-primary-fixed-variant": "#6e3900",
+              "inverse-primary": "#ffb77d",
+              "on-secondary-fixed-variant": "#474649",
+              "surface-container-lowest": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            font-size: 20px;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .tonal-layering { background-color: #f4f4f2; }
+    </style>
+</head>
+<body class="bg-background font-body text-on-surface antialiased">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#1C1C1E] dark:bg-black font-inter antialiased tracking-wide flex flex-col py-8 z-50">
+<div class="px-6 mb-10">
+<h1 class="text-amber-600 font-light tracking-[0.15em] text-xl uppercase">GASTHAUS</h1>
+<p class="text-gray-500 text-[10px] tracking-[0.2em] uppercase mt-1">Management</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="text-gray-400 hover:text-white px-6 py-3 flex items-center gap-3 transition-colors hover:bg-white/5 duration-200" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="text-gray-400 hover:text-white px-6 py-3 flex items-center gap-3 transition-colors hover:bg-white/5 duration-200" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm">Orders</span>
+</a>
+<a class="text-gray-400 hover:text-white px-6 py-3 flex items-center gap-3 transition-colors hover:bg-white/5 duration-200" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="text-sm">Kitchen</span>
+</a>
+<a class="text-gray-400 hover:text-white px-6 py-3 flex items-center gap-3 transition-colors hover:bg-white/5 duration-200" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-sm">Menu</span>
+</a>
+<a class="text-gray-400 hover:text-white px-6 py-3 flex items-center gap-3 transition-colors hover:bg-white/5 duration-200" href="#">
+<span class="material-symbols-outlined">table_restaurant</span>
+<span class="text-sm">Tables</span>
+</a>
+<a class="text-gray-400 hover:text-white px-6 py-3 flex items-center gap-3 transition-colors hover:bg-white/5 duration-200" href="#">
+<span class="material-symbols-outlined">rate_review</span>
+<span class="text-sm">Reviews</span>
+</a>
+<a class="border-l-4 border-amber-600 bg-white/5 text-amber-500 font-semibold px-6 py-3 flex items-center gap-3 active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-sm">Insights</span>
+</a>
+</nav>
+<div class="mt-auto px-6 border-t border-white/10 pt-6">
+<a class="text-gray-400 hover:text-white py-2 flex items-center gap-3 transition-colors" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-sm">Admin</span>
+</a>
+</div>
+</aside>
+<!-- TopNavBar Component -->
+<header class="h-[56px] w-[calc(100%-16rem)] ml-64 bg-white dark:bg-zinc-900 sticky top-0 z-40 border-b border-zinc-200 dark:border-zinc-800 flex justify-between items-center px-6 font-inter text-sm font-medium">
+<div class="flex items-center gap-6">
+<span class="text-zinc-900 dark:text-zinc-100 font-bold text-lg">Insights</span>
+<div class="flex bg-surface-container-low p-0.5 rounded-lg">
+<button class="px-4 py-1.5 bg-on-secondary-fixed text-white rounded-md text-xs font-semibold">Today</button>
+<button class="px-4 py-1.5 text-secondary text-xs hover:bg-zinc-200 transition-all rounded-md">This Week</button>
+<button class="px-4 py-1.5 text-secondary text-xs hover:bg-zinc-200 transition-all rounded-md">This Month</button>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 bg-primary text-on-primary px-4 py-1.5 rounded-lg font-semibold text-xs active:opacity-80 transition-all">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+                Generate Insights
+            </button>
+<span class="text-secondary-fixed-variant text-xs">Thursday, 20 March 2026</span>
+<button class="text-zinc-500 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-full p-2 transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white font-bold text-xs" title="AD Avatar">
+                AD
+            </div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="ml-64 p-4 min-h-[calc(100vh-56px)] overflow-y-auto">
+<div class="max-w-7xl mx-auto space-y-4">
+<!-- AI INSIGHT CARD -->
+<section class="bg-surface-container-lowest border border-zinc-200 border-l-[3px] border-l-primary p-4 rounded-lg">
+<div class="flex justify-between items-start mb-3">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined">auto_awesome</span>
+<h2 class="font-bold text-sm uppercase tracking-wider">AI Insights</h2>
+</div>
+<span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight">Powered by Gemini</span>
+</div>
+<p class="text-on-surface text-sm leading-relaxed mb-4">
+                    Today's performance is tracking strong with <span class="font-bold">127 orders</span> and <span class="font-bold">Rs. 38,250</span> in revenue. <span class="bg-primary/10 text-primary font-semibold px-1.5 rounded">Chicken Karahi accounts for 42%</span> of all orders, significantly outperforming its daily average. Peak kitchen load expected between 7:30 PM and 8:15 PM based on current reservation velocity.
+                </p>
+<div class="flex gap-2">
+<button class="bg-[#F3F4F6] text-on-surface px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-zinc-200 transition-colors">View Full Report</button>
+<button class="bg-[#F3F4F6] text-on-surface px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-zinc-200 transition-colors">Apply Suggestions</button>
+<button class="bg-[#F3F4F6] text-on-surface px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-zinc-200 transition-colors">Export PDF</button>
+</div>
+</section>
+<!-- CHARTS ROW -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Hourly Orders (Bar Chart) -->
+<article class="bg-white border border-zinc-200 p-4 rounded-lg flex flex-col h-[240px]">
+<h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Hourly orders</h3>
+<div class="flex-1 flex items-end justify-between gap-1.5 pb-2">
+<!-- Bar chart elements represent 9am-9pm -->
+<div class="w-full bg-primary h-[20%]" title="9AM"></div>
+<div class="w-full bg-primary h-[35%]" title="10AM"></div>
+<div class="w-full bg-primary h-[45%]" title="11AM"></div>
+<div class="w-full bg-primary h-[60%]" title="12PM"></div>
+<div class="w-full bg-primary-container h-[95%]" title="1PM Peak"></div>
+<div class="w-full bg-primary h-[70%]" title="2PM"></div>
+<div class="w-full bg-primary h-[40%]" title="3PM"></div>
+<div class="w-full bg-primary h-[30%]" title="4PM"></div>
+<div class="w-full bg-primary h-[50%]" title="5PM"></div>
+<div class="w-full bg-primary h-[75%]" title="6PM"></div>
+<div class="w-full bg-primary h-[85%]" title="7PM"></div>
+<div class="w-full bg-primary h-[80%]" title="8PM"></div>
+<div class="w-full bg-primary h-[60%]" title="9PM"></div>
+</div>
+<div class="flex justify-between text-[10px] text-zinc-400 pt-2 border-t border-zinc-100">
+<span>9AM</span>
+<span>1PM</span>
+<span>9PM</span>
+</div>
+</article>
+<!-- Revenue This Week (Line Chart) -->
+<article class="bg-white border border-zinc-200 p-4 rounded-lg flex flex-col h-[240px]">
+<h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">Revenue this week</h3>
+<div class="flex-1 relative overflow-hidden">
+<!-- Simulated SVG Area Chart -->
+<svg class="w-full h-full preserve-3d" viewbox="0 0 100 40">
+<path d="M0,35 L15,30 L30,32 L45,20 L60,10 L75,12 L100,8" fill="none" stroke="#8d4b00" stroke-width="1.5"></path>
+<path d="M0,35 L15,30 L30,32 L45,20 L60,40 L0,40 Z" fill="#ffdcc3" fill-opacity="0.3"></path>
+<path d="M60,10 L75,12 L100,8" fill="none" stroke="#8d4b00" stroke-dasharray="2" stroke-width="1.5"></path>
+</svg>
+<div class="absolute inset-0 flex justify-between items-end px-1 pb-1">
+<div class="w-1 h-1 bg-primary rounded-full mb-[4px]"></div>
+<div class="w-1 h-1 bg-primary rounded-full mb-[10px]"></div>
+<div class="w-1 h-1 bg-primary rounded-full mb-[8px]"></div>
+<div class="w-1 h-1 bg-primary rounded-full mb-[22px]"></div>
+<div class="w-1 h-1 bg-primary rounded-full mb-[32px]"></div>
+<div class="w-1 h-1 bg-primary rounded-full mb-[30px]"></div>
+<div class="w-1 h-1 bg-primary rounded-full mb-[34px]"></div>
+</div>
+</div>
+<div class="flex justify-between text-[10px] text-zinc-400 pt-2 border-t border-zinc-100 mt-2">
+<span>Mon</span>
+<span>Wed</span>
+<span>Fri</span>
+<span>Sun</span>
+</div>
+</article>
+<!-- Top Items Today (Horizontal Bar Chart) -->
+<article class="bg-white border border-zinc-200 p-4 rounded-lg flex flex-col h-[240px]">
+<h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Top items today</h3>
+<div class="flex-1 flex flex-col justify-between py-1">
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] mb-0.5"><span class="font-medium">Chicken Karahi</span><span>54</span></div>
+<div class="w-full bg-zinc-100 h-1.5 rounded-full"><div class="bg-primary h-full w-[90%] rounded-full"></div></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] mb-0.5"><span class="font-medium">Biryani</span><span>42</span></div>
+<div class="w-full bg-zinc-100 h-1.5 rounded-full"><div class="bg-primary h-full w-[70%] rounded-full"></div></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] mb-0.5"><span class="font-medium">Seekh Kebab</span><span>31</span></div>
+<div class="w-full bg-zinc-100 h-1.5 rounded-full"><div class="bg-primary h-full w-[50%] rounded-full"></div></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] mb-0.5"><span class="font-medium">Garlic Naan</span><span>28</span></div>
+<div class="w-full bg-zinc-100 h-1.5 rounded-full"><div class="bg-primary h-full w-[45%] rounded-full"></div></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] mb-0.5"><span class="font-medium">Mango Lassi</span><span>22</span></div>
+<div class="w-full bg-zinc-100 h-1.5 rounded-full"><div class="bg-primary h-full w-[35%] rounded-full"></div></div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-[10px] mb-0.5"><span class="font-medium">Gulab Jamun</span><span>18</span></div>
+<div class="w-full bg-zinc-100 h-1.5 rounded-full"><div class="bg-primary h-full w-[28%] rounded-full"></div></div>
+</div>
+</div>
+</article>
+</div>
+<!-- BOTTOM ROW -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+<!-- Key Metrics Grid -->
+<article class="space-y-3">
+<h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">Key Metrics</h3>
+<div class="grid grid-cols-2 gap-3">
+<div class="bg-white border border-zinc-200 p-4 rounded-lg">
+<p class="text-[10px] text-zinc-400 font-bold uppercase mb-1">Avg Order Value</p>
+<div class="flex items-baseline gap-2">
+<span class="text-xl font-bold">Rs. 845</span>
+<span class="text-[10px] text-green-600 font-bold">↑ 4.2%</span>
+</div>
+</div>
+<div class="bg-white border border-zinc-200 p-4 rounded-lg">
+<p class="text-[10px] text-zinc-400 font-bold uppercase mb-1">Table Turnover</p>
+<div class="flex items-baseline gap-2">
+<span class="text-xl font-bold">1.4h</span>
+<span class="text-[10px] text-red-500 font-bold">↓ 0.2h</span>
+</div>
+</div>
+<div class="bg-white border border-zinc-200 p-4 rounded-lg">
+<p class="text-[10px] text-zinc-400 font-bold uppercase mb-1">Customer Satisfaction</p>
+<div class="flex items-baseline gap-2">
+<span class="text-xl font-bold">4.8/5</span>
+<span class="text-[10px] text-green-600 font-bold">↑ 0.1</span>
+</div>
+</div>
+<div class="bg-white border border-zinc-200 p-4 rounded-lg">
+<p class="text-[10px] text-zinc-400 font-bold uppercase mb-1">Kitchen Efficiency</p>
+<div class="flex items-baseline gap-2">
+<span class="text-xl font-bold">92%</span>
+<span class="text-[10px] text-zinc-400 font-bold">--</span>
+</div>
+</div>
+</div>
+</article>
+<!-- Recommended Actions -->
+<article class="space-y-3">
+<h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest px-1">Recommended Actions</h3>
+<div class="bg-white border border-zinc-200 rounded-lg overflow-hidden h-full">
+<div class="divide-y divide-zinc-100">
+<div class="p-4 flex gap-4 items-center group cursor-pointer hover:bg-zinc-50 transition-colors">
+<div class="w-8 h-8 rounded-full border-2 border-primary/20 flex items-center justify-center text-primary font-bold text-sm shrink-0">1</div>
+<div class="flex-1">
+<p class="text-sm font-semibold">Prep extra Karahi base now</p>
+<p class="text-[11px] text-zinc-500">Predicted spike in Karahi orders for dinner rush starting in 45m.</p>
+</div>
+<span class="material-symbols-outlined text-zinc-300 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+<div class="p-4 flex gap-4 items-center group cursor-pointer hover:bg-zinc-50 transition-colors">
+<div class="w-8 h-8 rounded-full border-2 border-zinc-200 flex items-center justify-center text-zinc-400 font-bold text-sm shrink-0">2</div>
+<div class="flex-1">
+<p class="text-sm font-semibold">Incentivize "Garlic Naan" combos</p>
+<p class="text-[11px] text-zinc-500">Attachment rate is currently 15% lower than seasonal average.</p>
+</div>
+<span class="material-symbols-outlined text-zinc-300 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+<div class="p-4 flex gap-4 items-center group cursor-pointer hover:bg-zinc-50 transition-colors">
+<div class="w-8 h-8 rounded-full border-2 border-zinc-200 flex items-center justify-center text-zinc-400 font-bold text-sm shrink-0">3</div>
+<div class="flex-1">
+<p class="text-sm font-semibold">Check Section 4 Staffing</p>
+<p class="text-[11px] text-zinc-500">Turnover time in Section 4 is lagging by 12 minutes today.</p>
+</div>
+<span class="material-symbols-outlined text-zinc-300 group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+</div>
+</article>
+</div>
+</div>
+</main>
+</body></html>

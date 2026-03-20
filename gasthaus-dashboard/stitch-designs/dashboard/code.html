@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gasthaus Management Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "sidebar": "#1C1C1E",
+                        "background": "#F9F9F7",
+                        "primary": "#8d4b00",
+                        "amber-brand": "#D97706",
+                        "border-light": "#E5E7EB"
+                    },
+                    fontFamily: {
+                        "sans": ["Inter", "ui-sans-serif", "system-ui"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "8px",
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-background text-zinc-900 antialiased">
+<!-- SideNavBar Component -->
+<aside class="fixed left-0 top-0 h-full w-[240px] z-50 bg-sidebar flex flex-col py-8">
+<div class="px-6 mb-12 flex items-center gap-3">
+<span class="material-symbols-outlined text-amber-brand text-3xl">restaurant</span>
+<h1 class="text-2xl font-light tracking-[0.15em] text-amber-brand uppercase">GASTHAUS</h1>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white hover:bg-white/5 pl-6 h-[36px] transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white hover:bg-white/5 pl-6 h-[36px] transition-colors" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span>Orders</span>
+</a>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white hover:bg-white/5 pl-6 h-[36px] transition-colors" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span>Kitchen</span>
+</a>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white hover:bg-white/5 pl-6 h-[36px] transition-colors" href="#">
+<span class="material-symbols-outlined">menu_book</span>
+<span>Menu</span>
+</a>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white hover:bg-white/5 pl-6 h-[36px] transition-colors" href="#">
+<span class="material-symbols-outlined">table_bar</span>
+<span>Tables</span>
+</a>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white hover:bg-white/5 pl-6 h-[36px] transition-colors" href="#">
+<span class="material-symbols-outlined">rate_review</span>
+<span>Reviews</span>
+</a>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white hover:bg-white/5 pl-6 h-[36px] transition-colors" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span>Insights</span>
+</a>
+</nav>
+<div class="mt-auto px-6 space-y-4 pt-6">
+<div class="flex items-center gap-3 mb-6 p-2 rounded-lg bg-white/5">
+<div class="w-10 h-10 rounded bg-amber-brand flex items-center justify-center text-white font-bold">AD</div>
+<div>
+<p class="text-sm font-semibold text-white">Admin</p>
+<p class="text-xs text-zinc-500">Manager</p>
+</div>
+</div>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span>Settings</span>
+</a>
+<a class="flex items-center gap-4 text-zinc-400 hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Support</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Wrapper -->
+<main class="ml-[240px] min-h-screen">
+<!-- TopNavBar Component -->
+<header class="fixed top-0 right-0 left-[240px] h-[56px] z-40 bg-white flex justify-between items-center px-8 border-b border-border-light border-b border-border-light">
+<div class="flex items-center gap-8">
+<h2 class="text-base font-semibold text-zinc-900">Dashboard</h2>
+</div>
+<div class="flex items-center gap-6">
+<span class="text-xs text-zinc-500 font-medium">Thursday, 20 March 2026</span>
+<div class="flex items-center gap-3">
+<button class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-amber-brand transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center text-zinc-400 hover:text-amber-brand transition-colors">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+</button>
+<div class="w-7 h-7 rounded bg-amber-brand flex items-center justify-center text-white text-[10px] font-bold">AD</div>
+</div>
+</div>
+</header>
+<!-- Content Canvas -->
+<div class="pt-[80px] px-8 pb-12">
+<!-- Stats Row: 4 Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<!-- Card 1 -->
+<div class="bg-white p-6 rounded border border-border-light">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-amber-50 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-amber-700" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+</div>
+<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+12%</span>
+</div>
+<p class="text-zinc-500 text-xs font-medium uppercase tracking-wider">Total Orders Today</p>
+<h3 class="text-3xl font-bold mt-1 text-zinc-900">127</h3>
+</div>
+<!-- Card 2 -->
+<div class="bg-white p-6 rounded border border-border-light">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-amber-50 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-amber-700" style="font-variation-settings: 'FILL' 1;">payments</span>
+</div>
+<span class="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">+8%</span>
+</div>
+<p class="text-zinc-500 text-xs font-medium uppercase tracking-wider">Revenue Today</p>
+<h3 class="text-3xl font-bold mt-1 text-zinc-900">Rs. 38,250</h3>
+</div>
+<!-- Card 3 -->
+<div class="bg-white p-6 rounded border border-border-light">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-amber-50 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-amber-700" style="font-variation-settings: 'FILL' 1;">table_restaurant</span>
+</div>
+<span class="text-[10px] font-medium text-zinc-500 uppercase">4 available</span>
+</div>
+<p class="text-zinc-500 text-xs font-medium uppercase tracking-wider">Active Tables</p>
+<h3 class="text-3xl font-bold mt-1 text-zinc-900">8 / 12</h3>
+</div>
+<!-- Card 4 -->
+<div class="bg-white p-6 rounded border border-border-light">
+<div class="flex justify-between items-start mb-4">
+<div class="w-10 h-10 bg-amber-50 flex items-center justify-center rounded">
+<span class="material-symbols-outlined text-amber-700" style="font-variation-settings: 'FILL' 1;">pending_actions</span>
+</div>
+<span class="text-[10px] font-bold px-2 py-1 rounded uppercase text-amber-600 bg-amber-50">Needs attention</span>
+</div>
+<p class="text-zinc-500 text-xs font-medium uppercase tracking-wider">Pending Orders</p>
+<h3 class="text-3xl font-bold mt-1 text-zinc-900">6</h3>
+</div>
+</div>
+<!-- Bottom Section: 2 Columns (60/40) -->
+<div class="grid grid-cols-1 lg:grid-cols-10 gap-8">
+<!-- Left: Live Orders (60%) -->
+<div class="lg:col-span-6 bg-white rounded p-8 border border-border-light">
+<div class="flex justify-between items-center mb-8">
+<h4 class="text-lg font-semibold tracking-tight text-zinc-900">Live Orders</h4>
+<button class="text-amber-700 text-xs font-bold uppercase tracking-widest hover:opacity-80 transition-opacity">View All</button>
+</div>
+<div class="space-y-3">
+<!-- Order Row 1 -->
+<div class="flex items-center justify-between p-4 bg-zinc-50 rounded border border-border-light">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600">T1</div>
+<div>
+<p class="font-semibold text-zinc-900">Ali Khan</p>
+<p class="text-xs text-zinc-500">2 items • 12:45 PM</p>
+</div>
+</div>
+<div class="text-right flex items-center gap-8">
+<p class="font-bold text-zinc-900">Rs. 1,700</p>
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-zinc-200 text-zinc-600">PENDING</span>
+</div>
+</div>
+<!-- Order Row 2 -->
+<div class="flex items-center justify-between p-4 bg-zinc-50 rounded border border-border-light">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600">T2</div>
+<div>
+<p class="font-semibold text-zinc-900">Fatima S.</p>
+<p class="text-xs text-zinc-500">4 items • 12:38 PM</p>
+</div>
+</div>
+<div class="text-right flex items-center gap-8">
+<p class="font-bold text-zinc-900">Rs. 3,200</p>
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-amber-100 text-amber-700">PREPARING</span>
+</div>
+</div>
+<!-- Order Row 3 -->
+<div class="flex items-center justify-between p-4 bg-zinc-50 rounded border border-border-light">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600">T3</div>
+<div>
+<p class="font-semibold text-zinc-900">John D.</p>
+<p class="text-xs text-zinc-500">1 item • 12:30 PM</p>
+</div>
+</div>
+<div class="text-right flex items-center gap-8">
+<p class="font-bold text-zinc-900">Rs. 850</p>
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-700">READY</span>
+</div>
+</div>
+<!-- Order Row 4 -->
+<div class="flex items-center justify-between p-4 bg-zinc-50 rounded border border-border-light">
+<div class="flex items-center gap-4">
+<div class="w-10 h-10 rounded bg-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600">T4</div>
+<div>
+<p class="font-semibold text-zinc-900">Sara K.</p>
+<p class="text-xs text-zinc-500">3 items • 12:25 PM</p>
+</div>
+</div>
+<div class="text-right flex items-center gap-8">
+<p class="font-bold text-zinc-900">Rs. 2,100</p>
+<span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest bg-zinc-200 text-zinc-600">PENDING</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Tables (40%) -->
+<div class="lg:col-span-4 bg-white rounded p-8 border border-border-light">
+<div class="flex justify-between items-center mb-8">
+<h4 class="text-lg font-semibold tracking-tight text-zinc-900">Tables</h4>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded bg-amber-brand"></div>
+<span class="text-[10px] uppercase font-semibold text-zinc-500">Occupied</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded bg-zinc-100 border border-border-light"></div>
+<span class="text-[10px] uppercase font-semibold text-zinc-500">Free</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-4 gap-4 justify-items-center">
+<!-- Table Map 3x4 Grid -->
+<!-- Occupied (1-8) -->
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">1</div>
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">2</div>
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">3</div>
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">4</div>
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">5</div>
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">6</div>
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">7</div>
+<div class="w-full aspect-square rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700 font-bold">8</div>
+<!-- Free (9-12) -->
+<div class="w-full aspect-square rounded bg-zinc-50 border border-border-light flex items-center justify-center text-zinc-400 font-medium">9</div>
+<div class="w-full aspect-square rounded bg-zinc-50 border border-border-light flex items-center justify-center text-zinc-400 font-medium">10</div>
+<div class="w-full aspect-square rounded bg-zinc-50 border border-border-light flex items-center justify-center text-zinc-400 font-medium">11</div>
+<div class="w-full aspect-square rounded bg-zinc-50 border border-border-light flex items-center justify-center text-zinc-400 font-medium">12</div>
+</div>
+<div class="mt-8 pt-6 border-t border-border-light">
+<div class="flex justify-between items-center text-xs">
+<span class="text-zinc-500 font-medium uppercase tracking-wider">Turnover Rate</span>
+<span class="font-bold text-zinc-900">1.4h / Table</span>
+</div>
+<div class="w-full bg-zinc-100 h-1.5 rounded-full mt-3 overflow-hidden">
+<div class="bg-amber-brand h-full" style="width: 70%"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

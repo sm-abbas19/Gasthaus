@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gasthaus Kitchen - KDS</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "surface-container": "#eeeeec",
+              "tertiary": "#5b5c5c",
+              "surface": "#f9f9f7",
+              "surface-container-highest": "#e2e3e1",
+              "on-secondary": "#ffffff",
+              "on-background": "#1a1c1b",
+              "inverse-surface": "#2f3130",
+              "tertiary-container": "#747575",
+              "surface-variant": "#e2e3e1",
+              "primary-fixed": "#ffdcc3",
+              "on-tertiary-container": "#fdfcfc",
+              "on-primary": "#ffffff",
+              "inverse-on-surface": "#f1f1ef",
+              "secondary-fixed": "#e4e2e4",
+              "primary-fixed-dim": "#ffb77d",
+              "surface-bright": "#f9f9f7",
+              "background": "#f9f9f7",
+              "primary-container": "#b15f00",
+              "on-surface-variant": "#554336",
+              "on-error": "#ffffff",
+              "error-container": "#ffdad6",
+              "outline": "#887364",
+              "on-secondary-container": "#636264",
+              "surface-container-low": "#f4f4f2",
+              "on-tertiary-fixed-variant": "#464747",
+              "on-tertiary": "#ffffff",
+              "on-primary-fixed-variant": "#6e3900",
+              "on-primary-fixed": "#2f1500",
+              "tertiary-fixed": "#e3e2e2",
+              "inverse-primary": "#ffb77d",
+              "secondary-fixed-dim": "#c8c6c8",
+              "on-surface": "#1a1c1b",
+              "surface-container-high": "#e8e8e6",
+              "on-tertiary-fixed": "#1a1c1c",
+              "secondary": "#5f5e60",
+              "on-secondary-fixed": "#1b1b1d",
+              "primary": "#8d4b00",
+              "on-primary-container": "#fffbff",
+              "outline-variant": "#dbc2b0",
+              "on-error-container": "#93000a",
+              "surface-tint": "#904d00",
+              "tertiary-fixed-dim": "#c7c6c6",
+              "surface-dim": "#dadad8",
+              "surface-container-lowest": "#ffffff",
+              "error": "#ba1a1a",
+              "on-secondary-fixed-variant": "#474649",
+              "secondary-container": "#e2dfe1"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      body { background-color: #111111; color: #ffffff; font-family: 'Inter', sans-serif; }
+      .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+      .accent-bar { height: 4px; border-radius: 4px 4px 0 0; }
+    </style>
+</head>
+<body class="overflow-hidden h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="h-[56px] bg-[#1A1A1A] border-b border-[#2C2C2C] flex justify-between items-center px-8 z-50">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-amber-600" style="font-variation-settings: 'FILL' 1;">restaurant</span>
+<span class="text-white text-[14px] font-semibold tracking-[0.2em] uppercase">GASTHAUS KITCHEN</span>
+</div>
+<div class="flex items-center gap-4 text-center">
+<span class="text-white text-[18px] font-medium leading-none">12:45 PM</span>
+<span class="text-[#6B7280] text-[13px] font-normal leading-none border-l border-[#2C2C2C] pl-4">Thursday, 20 March 2026</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="bg-[#2C2C2C] px-3 py-1 rounded-full flex items-center gap-2">
+<span class="text-white text-[12px] font-bold">8 ACTIVE</span>
+</div>
+<div class="bg-[#052E16] px-3 py-1 rounded-full flex items-center gap-2 border border-[#22C55E]/30">
+<span class="text-[#22C55E] text-[12px] font-bold uppercase tracking-wider">3 READY</span>
+</div>
+</div>
+</header>
+<!-- Main Grid: 4x2 Grid of 8 Cards -->
+<main class="flex-grow p-4 grid grid-cols-4 grid-rows-2 gap-4">
+<!-- Card 1: T3 NEW -->
+<div class="bg-[#1A1A1A] border-2 border-[#D97706] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#D97706] w-full"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T3</span>
+<div class="flex flex-col items-end">
+<span class="text-[#22C55E] font-bold text-xl">04:22</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-038</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">2x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Chicken Karahi</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">1x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Garlic Naan</span>
+</div>
+<div class="text-[#FBBF24] italic text-sm pt-2">→ Extra spicy</div>
+</div>
+<button class="w-full h-[48px] bg-[#D97706] text-white font-bold rounded mt-auto hover:opacity-90 uppercase tracking-widest text-sm">START PREPARING</button>
+</div>
+</div>
+<!-- Card 2: T7 NEW -->
+<div class="bg-[#1A1A1A] border-2 border-[#D97706] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#D97706] w-full"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T7</span>
+<div class="flex flex-col items-end">
+<span class="text-[#22C55E] font-bold text-xl">06:15</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-039</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">3x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Biryani</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">2x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Raita</span>
+</div>
+</div>
+<button class="w-full h-[48px] bg-[#D97706] text-white font-bold rounded mt-auto hover:opacity-90 uppercase tracking-widest text-sm">START PREPARING</button>
+</div>
+</div>
+<!-- Card 3: T11 NEW -->
+<div class="bg-[#1A1A1A] border-2 border-[#D97706] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#D97706] w-full"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T11</span>
+<div class="flex flex-col items-end">
+<span class="text-[#22C55E] font-bold text-xl">02:05</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-040</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">1x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Mixed Grill</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">3x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Naan</span>
+</div>
+</div>
+<button class="w-full h-[48px] bg-[#D97706] text-white font-bold rounded mt-auto hover:opacity-90 uppercase tracking-widest text-sm">START PREPARING</button>
+</div>
+</div>
+<!-- Card 4: T1 IN PROGRESS -->
+<div class="bg-[#1A1A1A] border-2 border-[#3B82F6] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#3B82F6] w-full"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T1</span>
+<div class="flex flex-col items-end">
+<span class="text-amber-400 font-bold text-xl">12:47</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-035</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">1x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Chicken Karahi</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">2x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Seekh Kebab</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">1x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Naan</span>
+</div>
+</div>
+<button class="w-full h-[48px] bg-[#3B82F6] text-white font-bold rounded mt-auto hover:opacity-90 uppercase tracking-widest text-sm">MARK READY</button>
+</div>
+</div>
+<!-- Card 5: T5 IN PROGRESS -->
+<div class="bg-[#1A1A1A] border-2 border-[#3B82F6] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#3B82F6] w-full"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T5</span>
+<div class="flex flex-col items-end">
+<span class="text-amber-400 font-bold text-xl">15:33</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-036</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">4x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Biryani</span>
+</div>
+<div class="text-[#FBBF24] italic text-sm pt-2">→ No spice for table</div>
+</div>
+<button class="w-full h-[48px] bg-[#3B82F6] text-white font-bold rounded mt-auto hover:opacity-90 uppercase tracking-widest text-sm">MARK READY</button>
+</div>
+</div>
+<!-- Card 6: T9 OVERDUE -->
+<div class="bg-[#1A1A1A] border-2 border-[#EF4444] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#EF4444] w-full animate-pulse"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T9</span>
+<div class="flex flex-col items-end">
+<span class="text-[#EF4444] font-extrabold text-xl animate-pulse">22:10</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-037</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">2x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Chicken Karahi</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">1x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Daal</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">2x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Roti</span>
+</div>
+<div class="text-neutral-400 font-semibold uppercase text-[10px] tracking-widest pt-2">+1 MORE ITEM</div>
+</div>
+<button class="w-full h-[48px] bg-[#3B82F6] text-white font-bold rounded mt-auto hover:opacity-90 uppercase tracking-widest text-sm">MARK READY</button>
+</div>
+</div>
+<!-- Card 7: T2 READY -->
+<div class="bg-[#1A1A1A] border-2 border-[#22C55E] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#22C55E] w-full"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T2</span>
+<div class="flex flex-col items-end">
+<span class="text-red-400 font-bold text-xl">28:15</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-033</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">2x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Seekh Kebab</span>
+</div>
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">1x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Biryani</span>
+</div>
+</div>
+<button class="w-full h-[48px] bg-[#1C1C1E] border border-[#2C2C2C] text-[#6B7280] font-bold rounded mt-auto uppercase tracking-widest text-sm flex items-center justify-center gap-2 cursor-default">
+                    COLLECTED ✓
+                </button>
+</div>
+</div>
+<!-- Card 8: T6 READY OR PLACEHOLDER (Using T6 READY as specified in order) -->
+<div class="bg-[#1A1A1A] border-2 border-[#22C55E] rounded-lg flex flex-col relative overflow-hidden">
+<div class="accent-bar bg-[#22C55E] w-full"></div>
+<div class="p-4 flex flex-col h-full">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[48px] font-extrabold text-white leading-none">T6</span>
+<div class="flex flex-col items-end">
+<span class="text-red-400 font-bold text-xl">31:40</span>
+<span class="text-[10px] text-neutral-400 tracking-tighter uppercase">#ORD-034</span>
+</div>
+</div>
+<div class="flex-grow space-y-3">
+<div class="flex gap-3 items-baseline">
+<span class="text-white font-bold text-[20px]">3x</span>
+<span class="text-[#9CA3AF] font-normal text-[18px]">Chicken Karahi</span>
+</div>
+</div>
+<button class="w-full h-[48px] bg-[#1C1C1E] border border-[#2C2C2C] text-[#6B7280] font-bold rounded mt-auto uppercase tracking-widest text-sm flex items-center justify-center gap-2 cursor-default">
+                    COLLECTED ✓
+                </button>
+</div>
+</div>
+<!-- Slot 8: Placeholder (Hidden because T6 was used, but logic included for "any empty slots") -->
+<!-- <div class="border-2 border-dashed border-[#2C2C2C] rounded-lg flex items-center justify-center opacity-40">
+            <span class="material-symbols-outlined text-[48px] text-[#2C2C2C]">add</span>
+        </div> -->
+</main>
+<!-- Legend Bar / Footer -->
+<footer class="h-[36px] bg-[#1A1A1A] flex justify-center items-center px-8 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#D97706]"></span>
+<span class="text-[#9CA3AF] text-[11px] font-semibold tracking-widest uppercase">NEW ORDER</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#3B82F6]"></span>
+<span class="text-[#9CA3AF] text-[11px] font-semibold tracking-widest uppercase">IN PROGRESS</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#22C55E]"></span>
+<span class="text-[#9CA3AF] text-[11px] font-semibold tracking-widest uppercase">READY TO COLLECT</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-2.5 h-2.5 rounded-full bg-[#EF4444]"></span>
+<span class="text-[#9CA3AF] text-[11px] font-semibold tracking-widest uppercase">OVERDUE</span>
+</div>
+</div>
+<div class="absolute right-8">
+<span class="text-[#6B7280] text-[11px] font-bold tracking-widest uppercase">SYSTEM STATUS: OPERATIONAL</span>
+</div>
+</footer>
+</body></html>
