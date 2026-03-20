@@ -17,16 +17,22 @@ export class AuthService {
   }
 
   async login(email: string, password: string) {
-    const user = await this.usersService.findByEmail(email);
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+  const user = await this.usersService.findByEmail(email);
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
-
-    const { password: _, ...safeUser } = user;
-    const token = this.signToken(user.id, user.email, user.role);
-    return { user: safeUser, token };
+  if (!user) {
+    // Dynamic delay to prevent timing attacks
+    const randomDelay = Math.floor(Math.random() * (120 - 80) + 80);
+    await new Promise((res) => setTimeout(res, randomDelay));
+    throw new UnauthorizedException('Invalid credentials');
   }
+
+  const valid = await bcrypt.compare(password, user.password);
+  if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+  const { password: _, ...safeUser } = user;
+  const token = this.signToken(user.id, user.email, user.role);
+  return { user: safeUser, token };
+}
 
   private signToken(userId: string, email: string, role: string) {
     return this.jwtService.sign({ sub: userId, email, role });

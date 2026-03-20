@@ -115,8 +115,9 @@ model Review {
 
   order   Order  @relation(fields: [orderId], references: [id])
   orderId String
-}
 
+  @@unique([customerId, menuItemId, orderId])
+}
 model AiSession {
   id        String   @id @default(uuid())
   messages  Json

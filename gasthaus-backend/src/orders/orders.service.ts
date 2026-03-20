@@ -68,36 +68,44 @@ export class OrdersService {
       return sum + menuItem.price * orderItem.quantity;
     }, 0);
 
-    // 5. Create order with items in one transaction
-    const order = await this.prisma.order.create({
-      data: {
-        customerId,
-        tableId: dto.tableId,
-        totalAmount: total,
-        items: {
-          create: dto.items.map((orderItem) => {
-            const menuItem = getMenuItemOrThrow(orderItem.menuItemId);
-            return {
-              menuItemId: orderItem.menuItemId,
-              quantity: orderItem.quantity,
-              unitPrice: menuItem.price,
-              notes: orderItem.notes,
-            };
-          }),
-        },
+    // 5. Create order with items AND mark table occupied in one transaction
+const order = await this.prisma.$transaction(async (tx) => {
+  const createdOrder = await tx.order.create({
+    data: {
+      customerId,
+      tableId: dto.tableId,
+      totalAmount: total,
+      items: {
+        create: dto.items.map((orderItem) => {
+          const menuItem = getMenuItemOrThrow(orderItem.menuItemId);
+          return {
+            menuItemId: orderItem.menuItemId,
+            quantity: orderItem.quantity,
+            unitPrice: menuItem.price,
+            notes: orderItem.notes,
+          };
+        }),
       },
-      include: {
-        items: { include: { menuItem: true } },
-        customer: { select: { id: true, name: true, email: true } },
-        table: true,
-      },
-    });
+    },
+    include: {
+      items: { include: { menuItem: true } },
+      customer: { select: { id: true, name: true, email: true } },
+      table: true,
+    },
+  });
 
-    // 6. Mark table as occupied
-    await this.prisma.restaurantTable.update({
-      where: { id: dto.tableId },
-      data: { isOccupied: true },
-    });
+  await tx.restaurantTable.update({
+    where: { id: dto.tableId },
+    data: { isOccupied: true },
+  });
+
+  return createdOrder;
+});
+
+// 6. Emit WebSocket event to staff dashboard
+this.gateway.emitNewOrder(order);
+
+return order;
 
     // 7. Emit WebSocket event to staff dashboard
     this.gateway.emitNewOrder(order);
