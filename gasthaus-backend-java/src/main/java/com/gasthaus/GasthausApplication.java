@@ -2,6 +2,7 @@ package com.gasthaus;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
 
 /**
  * Application entry point — equivalent to NestJS's main.ts + bootstrap().
@@ -17,6 +18,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * In NestJS terms: @SpringBootApplication = AppModule + NestFactory.create() combined.
  */
 @SpringBootApplication
+@EnableCaching  // Activates @Cacheable / @CacheEvict on @Service beans. NestJS equiv: CacheModule.register(...)
 public class GasthausApplication {
 
     public static void main(String[] args) {

@@ -1,5 +1,6 @@
 package com.gasthaus.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -19,6 +20,12 @@ import java.util.UUID;
  *   - Inverse side   = the entity that declares mappedBy
  * MenuCategory is the INVERSE side of the Category ↔ MenuItem relation.
  */
+/**
+ * @JsonIgnoreProperties suppresses Hibernate proxy internals (hibernateLazyInitializer,
+ * handler) that ByteBuddy adds to lazy-loaded proxy subclasses.
+ * Without this, Jackson throws when serializing MenuItem.category that was loaded lazily.
+ */
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "menu_categories")
 @Getter

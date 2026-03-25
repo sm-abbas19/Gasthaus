@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post,
-  Param, Body, UseGuards, Request,
+  Param, Body, UseGuards, Request, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { CreateReviewDto } from './dto/create-review.dto';
@@ -16,6 +16,7 @@ export class ReviewsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.CUSTOMER)
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   createReview(@Request() req, @Body() dto: CreateReviewDto) {
     return this.reviewsService.createReview(req.user.id, dto);
   }

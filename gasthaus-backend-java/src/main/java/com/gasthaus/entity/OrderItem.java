@@ -1,5 +1,6 @@
 package com.gasthaus.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -60,6 +61,8 @@ public class OrderItem {
      * Many OrderItems → One Order.
      * This is the owning side — order_id FK column is defined here.
      */
+    // @JsonIgnore breaks the cycle: Order → items → OrderItem.order → Order → ...
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;

@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Delete, Patch,
-  Param, Body, UseGuards, Request,
+  Param, Body, UseGuards, Request, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { TablesService } from './tables.service';
 import { CreateTableDto } from './dto/create-table.dto';
@@ -40,6 +40,7 @@ export class TablesController {
   }
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MANAGER)
   createTable(@Request() req, @Body() dto: CreateTableDto) {
@@ -48,6 +49,7 @@ export class TablesController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MANAGER)
   deleteTable(@Param('id') id: string) {

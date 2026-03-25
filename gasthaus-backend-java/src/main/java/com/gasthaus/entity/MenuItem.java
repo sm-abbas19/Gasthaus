@@ -1,5 +1,7 @@
 package com.gasthaus.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -82,14 +84,30 @@ public class MenuItem {
      *   Without @JoinColumn, Hibernate auto-names it "category_id" anyway,
      *   but being explicit is better documentation.
      */
+    /**
+     * @JsonIgnoreProperties({"items"}) — when this category is serialized as part of
+     * a MenuItem, suppress its items list to break the cycle:
+     *   MenuItem → category → items → MenuItem → category → ...
+     *
+     * This lets us still serialize MenuItem.category (needed for /menu/items responses)
+     * while avoiding infinite recursion. When MenuCategory is serialized directly
+     * (e.g., GET /menu/categories), items ARE included normally.
+     *
+     * NestJS avoids this entirely because Prisma's include is explicit — you only get
+     * what you ask for. JPA entities carry all relations and need Jackson hints.
+     */
+    @JsonIgnoreProperties({"items"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
     private MenuCategory category;
 
+    // Back-references — not needed in JSON responses for menu items
+    @JsonIgnore
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "menuItem", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();

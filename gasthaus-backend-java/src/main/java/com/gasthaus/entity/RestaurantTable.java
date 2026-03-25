@@ -1,5 +1,6 @@
 package com.gasthaus.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -41,10 +42,11 @@ public class RestaurantTable {
     private Integer tableNumber;
 
     /**
-     * QR code string (typically a URL like /table/5).
+     * QR code data URI (data:image/png;base64,...).
      * Prisma: qrCode String @unique
+     * Must be TEXT — base64-encoded PNG images far exceed VARCHAR(255).
      */
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true, columnDefinition = "text")
     private String qrCode;
 
     /**
@@ -55,7 +57,8 @@ public class RestaurantTable {
     @Builder.Default
     private Boolean isOccupied = false;
 
-    /** One Table → Many Orders placed at that table. */
+    // Back-reference — suppressed in JSON to avoid Order → table → orders → Order cycle
+    @JsonIgnore
     @OneToMany(mappedBy = "table", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();

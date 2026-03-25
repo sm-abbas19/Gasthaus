@@ -1,6 +1,8 @@
 package com.gasthaus.entity;
 
 import com.gasthaus.entity.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -43,6 +45,7 @@ import java.util.UUID;
  *   For convenient programmatic construction. Builder pattern lets
  *   you do: User.builder().name("Ali").email("...").build()
  */
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Table(name = "users")
 @Getter
@@ -149,14 +152,20 @@ public class User {
      * @Builder.Default — required when Lombok @Builder is used with a field
      *   that has an initializer. Without it, the builder ignores the default.
      */
+    // @JsonIgnore prevents circular serialization: Order → User.orders → Order → ...
+    // NestJS avoids this by using Prisma's select (never returning User with orders attached).
+    // In JPA, entities are rich objects — we annotate back-references to stop Jackson recursing.
+    @JsonIgnore
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Order> orders = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<AiSession> aiSessions = new ArrayList<>();

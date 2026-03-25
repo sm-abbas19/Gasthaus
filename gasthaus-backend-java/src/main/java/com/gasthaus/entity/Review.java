@@ -1,5 +1,6 @@
 package com.gasthaus.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -77,6 +78,8 @@ public class Review {
     @JoinColumn(name = "menu_item_id", nullable = false)
     private MenuItem menuItem;
 
+    // Suppress in JSON — order data is too deep for review responses
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;

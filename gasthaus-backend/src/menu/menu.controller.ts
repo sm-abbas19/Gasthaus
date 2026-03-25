@@ -1,7 +1,7 @@
 import {
   Controller, Get, Post, Patch, Delete,
   Param, Body, UseGuards, UploadedFile,
-  UseInterceptors,
+  UseInterceptors, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
@@ -28,6 +28,7 @@ export class MenuController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MANAGER)
   @Post('categories')
+  @HttpCode(HttpStatus.CREATED)
   createCategory(@Body() dto: CreateCategoryDto) {
     return this.menuService.createCategory(dto);
   }
@@ -35,6 +36,7 @@ export class MenuController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MANAGER)
   @Delete('categories/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   deleteCategory(@Param('id') id: string) {
     return this.menuService.deleteCategory(id);
   }
@@ -54,6 +56,7 @@ export class MenuController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MANAGER)
   @Post('items')
+  @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
   createItem(
     @Body() dto: CreateItemDto,
@@ -77,6 +80,7 @@ export class MenuController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MANAGER)
   @Delete('items/:id')
+  @HttpCode(HttpStatus.NO_CONTENT)
   deleteItem(@Param('id') id: string) {
     return this.menuService.deleteItem(id);
   }

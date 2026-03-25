@@ -1,6 +1,6 @@
 import {
   Controller, Get, Post, Patch,
-  Param, Body, UseGuards, Request,
+  Param, Body, UseGuards, Request, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
@@ -16,6 +16,7 @@ export class OrdersController {
   constructor(private ordersService: OrdersService) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   @Roles(Role.CUSTOMER)
   @UseGuards(RolesGuard)
   createOrder(@Request() req, @Body() dto: CreateOrderDto) {

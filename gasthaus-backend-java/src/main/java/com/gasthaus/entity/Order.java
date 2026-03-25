@@ -1,6 +1,7 @@
 package com.gasthaus.entity;
 
 import com.gasthaus.entity.enums.OrderStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -96,7 +97,8 @@ public class Order {
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
-    /** One Order → Many Reviews (one review per menu item in the order). */
+    // Reviews are accessed via GET /reviews/order/:id — not included in order responses
+    @JsonIgnore
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();

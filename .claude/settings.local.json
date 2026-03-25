@@ -4,7 +4,13 @@
       "Bash(grep -E \"^\\(axios|socket.io-client|recharts\\)$\")",
       "Bash(grep -E \"^\\(react-hook-form|zod|@hookform\\)$\")",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(PGPASSWORD=gasthaus123 psql -U gasthaus -h localhost -d gasthaus -c \"ALTER TABLE gasthaus_java.restaurant_tables ALTER COLUMN qr_code TYPE text;\" 2>&1)",
+      "Bash(PGPASSWORD=gasthaus123 psql -U gasthaus -h localhost -d gasthaus -c \"SET search_path TO gasthaus_java; TRUNCATE ai_sessions, reviews, order_items, orders, menu_items, menu_categories, restaurant_tables, users CASCADE;\" 2>&1)",
+      "Bash(grep -n 'HttpCode\\\\|HttpStatus\\\\|201\\\\|204\\\\|201\\\\b' /home/smabbas/Gasthaus/gasthaus-backend/src/**/*.controller.ts)",
+      "Bash(docker exec:*)",
+      "Bash(python3 -c \"import sys,json; d=sys.stdin.read\\(\\); obj=json.loads\\(d\\); print\\(''''items type:'''', obj[1][0][''''items''''][0]\\)\")",
+      "Bash(test-api-verbose.sh:*)"
     ]
   }
 }

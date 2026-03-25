@@ -137,6 +137,60 @@
         </dependency>
 
         <!-- ═══════════════════════════════════════════
+             CACHING + REDIS
+             NestJS equivalent: @nestjs/cache-manager + cache-manager-redis-store
+             spring-boot-starter-data-redis brings in Lettuce (the default Redis client).
+             spring-boot-starter-cache provides the @Cacheable / @CacheEvict abstractions.
+             With Redis on the classpath and spring.cache.type=redis, Spring auto-configures
+             RedisCacheManager — no manual wiring needed. The same @Cacheable annotations
+             in MenuService work unchanged; Spring just stores entries in Redis instead of
+             an in-memory map. This mirrors how NestJS swaps the cache store via the
+             CacheModule.register({ store: redisStore }) option.
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <!--
+                Lettuce is included by default — a non-blocking Redis client backed by Netty.
+                NestJS uses ioredis under the hood for cache-manager-redis-store.
+                Both are async, connection-pooled Redis clients.
+            -->
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             QRCODE — generates QR code images for table creation
+             NestJS equivalent: the `qrcode` npm package (QRCode.toDataURL)
+             ZXing (Zebra Crossing) is the standard Java QR library.
+             core = encoding/decoding logic
+             javase = MatrixToImageWriter for PNG output
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             CLOUDINARY — image upload for menu items
+             NestJS equivalent: cloudinary npm package (v2 as cloudinary)
+             cloudinary-http45 uses Apache HttpClient 4.5 internally.
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http45</artifactId>
+            <version>1.36.0</version>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
              TESTING
              Brought in automatically — JUnit 5, Mockito, AssertJ, MockMvc
              ═══════════════════════════════════════════ -->
