@@ -29,10 +29,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated()) {
       router.replace('/dashboard')
+      return
+    }
+    const flash = sessionStorage.getItem('login_error')
+    if (flash) {
+      setServerError(flash)
+      sessionStorage.removeItem('login_error')
     }
   }, [router])
 

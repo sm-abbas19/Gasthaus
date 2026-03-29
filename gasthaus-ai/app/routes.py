@@ -110,25 +110,28 @@ Current Menu:
 async def insights(req: InsightsRequest):
     try:
         top_items_text = "\n".join(
-            [f"- {item['name']}: {item['orders']} orders" for item in req.topItems]
-        )
+            [f"- {item['name']}: {item.get('count', item.get('orders', 0))} orders" for item in req.topItems]
+        ) if req.topItems else "No data"
         complaints_text = (
             "\n".join([f"- {c}" for c in req.complaints])
             if req.complaints
             else "No complaints recorded"
         )
 
-        prompt = f"""You are a restaurant analytics assistant for Gasthaus.
-Analyze today's performance data and give a concise, actionable insight paragraph.
-Be specific, practical, and highlight both positives and areas for improvement.
+        period_label = {"today": "Today", "week": "This Week", "month": "This Month"}.get(req.period, "Today")
 
-Today's Data:
+        prompt = f"""You are a restaurant analytics assistant for Gasthaus.
+Analyze the performance data for {period_label} and give a concise, actionable insight paragraph.
+Be specific and factual — only reference what is present in the data below. Do not exaggerate, infer patterns, or use words like "recurring" or "consistent" unless multiple complaints say the same thing.
+Highlight both positives and areas for improvement based strictly on the numbers provided.
+
+Performance Data ({period_label}):
 - Total Orders: {req.totalOrders}
 - Total Revenue: Rs. {req.totalRevenue}
 - Busiest Hour: {req.busiestHour or "Not recorded"}
 - Top Selling Items:
 {top_items_text}
-- Customer Complaints:
+- Customer Complaints ({len(req.complaints) if req.complaints else 0} total):
 {complaints_text}
 
 Write a 3-4 sentence insight summary for the manager."""

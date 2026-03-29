@@ -17,6 +17,7 @@ class RecommendResponse(BaseModel):
     sessionId: Optional[str] = None
 
 class InsightsRequest(BaseModel):
+    period: Optional[str] = "today"
     totalOrders: int
     totalRevenue: float
     topItems: List[dict]

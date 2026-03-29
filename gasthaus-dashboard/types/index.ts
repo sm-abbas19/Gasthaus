@@ -61,6 +61,7 @@ export interface Order {
   status: OrderStatus
   totalAmount: number
   createdAt: string
+  updatedAt: string
   customerId: string
   tableId?: string
   items: OrderItem[]

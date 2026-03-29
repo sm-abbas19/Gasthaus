@@ -42,7 +42,7 @@ export default function MenuPage() {
 
   const { data: categories = [] } = useQuery<MenuCategory[]>({
     queryKey: ['menu-categories'],
-    queryFn:  () => api.get<MenuCategory[]>('/menu/categories').then((r) => r.data),
+    queryFn:  () => api.get<MenuCategory[]>('/menu/categories?all=true').then((r) => r.data),
   })
 
   // Flatten all items with their category

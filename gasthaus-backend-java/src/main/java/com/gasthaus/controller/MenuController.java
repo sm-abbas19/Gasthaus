@@ -59,8 +59,9 @@ public class MenuController {
      * Response is served from the "menu:categories" cache after the first call.
      */
     @GetMapping("/categories")
-    public List<MenuCategory> getCategories() {
-        return menuService.getCategories();
+    public List<MenuCategory> getCategories(
+            @RequestParam(value = "all", defaultValue = "false") boolean all) {
+        return all ? menuService.getCategoriesWithAllItems() : menuService.getCategories();
     }
 
     /**

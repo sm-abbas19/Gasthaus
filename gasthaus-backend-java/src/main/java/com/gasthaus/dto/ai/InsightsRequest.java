@@ -26,7 +26,6 @@ public class InsightsRequest {
     @NotNull(message = "Total revenue is required")
     private Double totalRevenue;
 
-    @NotNull(message = "Top items are required")
     private List<Object> topItems;
 
     /** Optional — nullable if not provided */

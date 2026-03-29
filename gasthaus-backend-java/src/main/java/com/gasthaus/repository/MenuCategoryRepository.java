@@ -68,4 +68,15 @@ public interface MenuCategoryRepository extends JpaRepository<MenuCategory, UUID
      * Derived query: "findAll" + "By" + "OrderBy" + "Name" + "Asc"
      */
     List<MenuCategory> findAllByOrderByNameAsc();
+
+    /**
+     * Manager view — returns ALL items regardless of availability.
+     * Used by the staff menu management page so unavailable items remain visible.
+     */
+    @Query("""
+            SELECT DISTINCT c FROM MenuCategory c
+            LEFT JOIN FETCH c.items i
+            ORDER BY c.name ASC
+            """)
+    List<MenuCategory> findAllWithAllItemsOrderedByName();
 }

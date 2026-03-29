@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Sparkles, ChevronRight } from 'lucide-react'
 import {
@@ -34,6 +34,9 @@ function inPeriod(dateStr: string, period: 'today' | 'week' | 'month'): boolean 
 
 // ── page ───────────────────────────────────────────────────────────────────
 
+// Auto-generate once per tab session — survives navigation but not tab close
+let _sessionGenerated = false
+
 export default function InsightsPage() {
   const [period, setPeriod]   = useState<'today' | 'week' | 'month'>('today')
   const [aiText, setAiText]   = useState<string | null>(null)
@@ -61,10 +64,17 @@ export default function InsightsPage() {
   const avgRating     = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : 0
-  const cancelledPct  = orders.length
-    ? Math.round((orders.filter((o) => o.status === 'CANCELLED').length / orders.length) * 100)
-    : 0
-  const kitchenEff    = Math.max(0, 100 - cancelledPct)
+  const avgFulfillmentMin = useMemo(() => {
+    const served = periodOrders.filter(
+      (o) => o.status === 'SERVED' || o.status === 'COMPLETED',
+    )
+    if (!served.length) return null
+    const totalMs = served.reduce(
+      (s, o) => s + (new Date(o.updatedAt).getTime() - new Date(o.createdAt).getTime()),
+      0,
+    )
+    return Math.round(totalMs / served.length / 60_000)
+  }, [periodOrders])
 
   // ── hourly orders chart (today's orders by hour) ──────────────────────
   const hourlyData = useMemo(() => {
@@ -109,6 +119,16 @@ export default function InsightsPage() {
     return sorted.map(([name, count]) => ({ name, count, pct: Math.round((count / max) * 100) }))
   }, [periodOrders])
 
+  // ── Auto-generate once per session after data loads ──────────────────
+  const autoFired = useRef(false)
+  useEffect(() => {
+    if (autoFired.current || _sessionGenerated || orders.length === 0) return
+    autoFired.current = true
+    _sessionGenerated = true
+    generateInsights()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orders])
+
   // ── AI insights ───────────────────────────────────────────────────────
   async function generateInsights() {
     setAiLoading(true)
@@ -120,13 +140,17 @@ export default function InsightsPage() {
         totalRevenue,
         avgOrderValue: Math.round(avgOrderValue),
         avgRating:     parseFloat(avgRating.toFixed(1)),
+        topItems:      topItems.slice(0, 5).map((i) => ({ name: i.name, count: i.count })),
+        complaints:    reviews
+          .filter((r) => r.rating <= 2 && r.comment)
+          .map((r) => r.comment as string)
+          .slice(0, 5),
       })
-      // Backend may return { insight }, { message }, or a raw string
       const data = res.data
       setAiText(
         typeof data === 'string'
           ? data
-          : data?.insight ?? data?.message ?? data?.response ?? JSON.stringify(data),
+          : data?.insights ?? data?.insight ?? data?.message ?? data?.response ?? JSON.stringify(data),
       )
     } catch {
       setAiError(true)
@@ -173,7 +197,7 @@ export default function InsightsPage() {
             <h2 className="font-bold text-sm uppercase tracking-wider">AI Insights</h2>
           </div>
           <span className="bg-[#F3F4F6] text-[#6B7280] px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-tight">
-            Powered by AI
+            Powered by Gemini
           </span>
         </div>
 
@@ -183,21 +207,10 @@ export default function InsightsPage() {
           </p>
         ) : (
           <p className="text-sm text-[#9CA3AF] leading-relaxed mb-4">
-            Click <strong className="text-[#D97706]">Generate Insights</strong> to get an AI-powered
+            Click <strong className="text-[#D97706]">Generate Insights</strong>{' '}to get an AI-powered
             summary of your restaurant&apos;s performance — orders, revenue trends, and recommendations.
           </p>
         )}
-
-        <div className="flex gap-2">
-          {['View Full Report', 'Apply Suggestions', 'Export PDF'].map((label) => (
-            <button
-              key={label}
-              className="bg-[#F3F4F6] text-zinc-700 px-3 py-1.5 rounded-lg text-xs font-semibold hover:bg-[#E5E7EB] transition-colors"
-            >
-              {label}
-            </button>
-          ))}
-        </div>
       </section>
 
       {/* ── Charts row ───────────────────────────────────────────────── */}
@@ -307,9 +320,14 @@ export default function InsightsPage() {
               trend={{ text: `${reviews.length} reviews`, positive: avgRating >= 4 }}
             />
             <MetricCard
-              label="Kitchen Efficiency"
-              value={`${kitchenEff}%`}
-              trend={{ text: cancelledPct > 0 ? `${cancelledPct}% cancelled` : 'No cancellations', positive: cancelledPct === 0 }}
+              label="Avg Fulfillment Time"
+              value={avgFulfillmentMin !== null ? `${avgFulfillmentMin} min` : '—'}
+              trend={{
+                text: avgFulfillmentMin !== null
+                  ? avgFulfillmentMin <= 30 ? 'On target' : 'Above 30 min'
+                  : 'No completed orders',
+                positive: avgFulfillmentMin !== null && avgFulfillmentMin <= 30,
+              }}
             />
           </div>
         </div>

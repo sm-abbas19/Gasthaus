@@ -119,6 +119,10 @@ public class MenuService {
         return categoryRepository.findAllWithAvailableItemsOrderedByName();
     }
 
+    public List<MenuCategory> getCategoriesWithAllItems() {
+        return categoryRepository.findAllWithAllItemsOrderedByName();
+    }
+
     /**
      * NestJS: prisma.menuCategory.create({ data: dto })
      *
