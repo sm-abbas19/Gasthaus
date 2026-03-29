@@ -58,11 +58,12 @@ export default function TablesPage() {
   const activeOrderByTableId = useMemo(() => {
     const map = new Map<string, Order>()
     orders.forEach((o) => {
-      if (o.tableId && ACTIVE_ORDER_STATUSES.includes(o.status)) {
+      const tableId = o.tableId ?? o.table?.id
+      if (tableId && ACTIVE_ORDER_STATUSES.includes(o.status)) {
         // Keep the most recent active order per table
-        const existing = map.get(o.tableId)
+        const existing = map.get(tableId)
         if (!existing || new Date(o.createdAt) > new Date(existing.createdAt)) {
-          map.set(o.tableId, o)
+          map.set(tableId, o)
         }
       }
     })

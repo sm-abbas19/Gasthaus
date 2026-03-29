@@ -92,13 +92,18 @@ function isThisWeek(dateStr: string): boolean {
 
 export default function OrdersPage() {
   const queryClient = useQueryClient()
-  const [search, setSearch]   = useState('')
-  const [period, setPeriod]   = useState<'today' | 'week'>('today')
+  const [search, setSearch]     = useState('')
+  const [period, setPeriod]     = useState<'today' | 'week'>('today')
+  const [spinning, setSpinning] = useState(false)
 
   const { data: orders = [], isFetching } = useQuery<Order[]>({
     queryKey: ['orders'],
     queryFn:  () => api.get<Order[]>('/orders').then((r) => r.data),
   })
+
+  useEffect(() => {
+    if (!isFetching) setSpinning(false)
+  }, [isFetching])
 
   const { mutate: updateStatus } = useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
@@ -170,10 +175,13 @@ export default function OrdersPage() {
           <div className="h-5 w-px bg-[#E5E7EB]" />
 
           <button
-            onClick={() => queryClient.invalidateQueries({ queryKey: ['orders'] })}
+            onClick={() => {
+              setSpinning(true)
+              queryClient.invalidateQueries({ queryKey: ['orders'] })
+            }}
             className="flex items-center gap-1.5 text-xs font-medium text-[#6B7280] hover:text-[#D97706] transition-colors"
           >
-            <RefreshCw size={13} className={isFetching ? 'animate-spin' : ''} />
+            <RefreshCw size={13} className={spinning ? 'animate-spin' : ''} />
             Refresh
           </button>
         </div>
