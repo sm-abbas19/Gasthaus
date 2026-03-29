@@ -85,6 +85,12 @@ public class SecurityConfig {
                 // original status code. This is the REST API equivalent of configuring errorPage.
                 .requestMatchers("/error").permitAll()
 
+                // ── WebSocket / SockJS handshake ──
+                // SockJS probes the server with GET /ws/info before upgrading to WebSocket.
+                // This plain HTTP request carries no Authorization header, so it must be
+                // permitted here. The STOMP connection itself is trusted (staff-only app).
+                .requestMatchers("/ws/**").permitAll()
+
                 // ── Public auth routes ──
                 .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/register").permitAll()
 
