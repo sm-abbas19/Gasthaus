@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Receipt, Banknote, LayoutGrid, Clock, ArrowRight } from 'lucide-react'
+import { Receipt, Banknote, LayoutGrid, Clock, ArrowRight, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
 import api from '@/lib/api'
 import { createStompClient, TOPICS } from '@/lib/socket'
@@ -11,6 +11,8 @@ import { OrderStatus } from '@/types'
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
+const OVERDUE_MS = 15 * 60 * 1000
+
 function isToday(dateStr: string): boolean {
   const d = new Date(dateStr)
   const now = new Date()
@@ -18,6 +20,13 @@ function isToday(dateStr: string): boolean {
     d.getFullYear() === now.getFullYear() &&
     d.getMonth() === now.getMonth() &&
     d.getDate() === now.getDate()
+  )
+}
+
+function isOverdue(order: Order): boolean {
+  return (
+    order.status === OrderStatus.PREPARING &&
+    Date.now() - new Date(order.createdAt).getTime() > OVERDUE_MS
   )
 }
 
@@ -68,6 +77,7 @@ export default function DashboardPage() {
   const pendingCount  = orders.filter(
     (o) => o.status === OrderStatus.PENDING || o.status === OrderStatus.CONFIRMED,
   ).length
+  const overdueCount  = orders.filter(isOverdue).length
   const occupiedCount = tables.filter((t) => t.isOccupied).length
 
   const liveOrders = [...orders]
@@ -100,10 +110,14 @@ export default function DashboardPage() {
           badge={{ text: `${tables.length - occupiedCount} free`, cls: 'text-zinc-500' }}
         />
         <StatCard
-          icon={<Clock size={20} className="text-amber-700" />}
+          icon={<Clock size={20} className={overdueCount > 0 ? 'text-red-600' : 'text-amber-700'} />}
           label="Pending Orders"
           value={pendingCount.toString()}
-          badge={{ text: 'Needs attention', cls: 'text-amber-600 bg-amber-50' }}
+          badge={
+            overdueCount > 0
+              ? { text: `${overdueCount} overdue`, cls: 'text-red-600 bg-red-50' }
+              : { text: 'Needs attention', cls: 'text-amber-600 bg-amber-50' }
+          }
         />
       </div>
 
@@ -224,16 +238,30 @@ function OrderRow({ order }: { order: Order }) {
     hour12: true,
   })
   const tableLabel = order.table?.tableNumber ? `T${order.table.tableNumber}` : '—'
-  const name = order.customer?.name ?? 'Guest'
+  const name       = order.customer?.name ?? 'Guest'
+  const overdue    = isOverdue(order)
 
   return (
-    <div className="flex items-center justify-between p-4 bg-zinc-50 rounded-md border border-[#E5E7EB]">
+    <div className={`flex items-center justify-between p-4 rounded-md border ${
+      overdue
+        ? 'bg-red-50 border-l-[3px] border-l-red-500 border-y-red-200 border-r-red-200'
+        : 'bg-zinc-50 border-[#E5E7EB]'
+    }`}>
       <div className="flex items-center gap-4">
-        <div className="w-10 h-10 rounded-md bg-zinc-200 flex items-center justify-center font-bold text-xs text-zinc-600 shrink-0">
+        <div className={`w-10 h-10 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
+          overdue ? 'bg-red-200 text-red-700' : 'bg-zinc-200 text-zinc-600'
+        }`}>
           {tableLabel}
         </div>
         <div>
-          <p className="font-semibold text-zinc-900 text-sm">{name}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-zinc-900 text-sm">{name}</p>
+            {overdue && (
+              <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 uppercase tracking-wider">
+                <AlertTriangle size={10} /> Overdue
+              </span>
+            )}
+          </div>
           <p className="text-xs text-[#6B7280]">
             {order.items.length} item{order.items.length !== 1 ? 's' : ''} • {time}
           </p>
