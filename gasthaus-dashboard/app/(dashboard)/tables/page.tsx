@@ -160,7 +160,7 @@ export default function TablesPage() {
                 value={newTableNum}
                 onChange={(e) => setNewTableNum(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && newTableNum) addTable(Number(newTableNum))
+                  if (e.key === 'Enter' && Number(newTableNum) > 0) addTable(Number(newTableNum))
                   if (e.key === 'Escape') { setAddingTable(false); setNewTableNum('') }
                 }}
                 placeholder="e.g. 13"
@@ -169,8 +169,8 @@ export default function TablesPage() {
             </div>
             <div className="flex gap-2 pt-5">
               <button
-                onClick={() => newTableNum && addTable(Number(newTableNum))}
-                disabled={addingPending || !newTableNum}
+                onClick={() => Number(newTableNum) > 0 && addTable(Number(newTableNum))}
+                disabled={addingPending || Number(newTableNum) <= 0}
                 className="bg-[#D97706] text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-[#B45309] disabled:opacity-50 transition-colors"
               >
                 Add

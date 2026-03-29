@@ -6,12 +6,11 @@ import { Receipt, Banknote, LayoutGrid, Clock, ArrowRight, AlertTriangle } from 
 import Link from 'next/link'
 import api from '@/lib/api'
 import { createStompClient, TOPICS } from '@/lib/socket'
+import { OVERDUE_MS } from '@/lib/constants'
 import type { Order, RestaurantTable } from '@/types'
 import { OrderStatus } from '@/types'
 
 // ── helpers ────────────────────────────────────────────────────────────────
-
-const OVERDUE_MS = 15 * 60 * 1000
 
 function isToday(dateStr: string): boolean {
   const d = new Date(dateStr)

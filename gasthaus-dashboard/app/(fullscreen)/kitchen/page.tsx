@@ -7,12 +7,11 @@ import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { createStompClient, TOPICS } from '@/lib/socket'
 import { clearAuth } from '@/lib/auth'
+import { OVERDUE_MS } from '@/lib/constants'
 import type { Order } from '@/types'
 import { OrderStatus } from '@/types'
 
 // ── constants ──────────────────────────────────────────────────────────────
-
-const OVERDUE_MS = 15 * 60 * 1000   // 15 min in preparing = overdue
 const MAX_VISIBLE_ITEMS = 3          // show first 3 items, "+ N more" after
 
 // Kitchen only cares about these three statuses
@@ -29,7 +28,7 @@ function elapsedMs(dateStr: string): number {
 }
 
 function formatTimer(ms: number): string {
-  const totalSecs = Math.floor(ms / 1000)
+  const totalSecs = Math.floor(Math.max(0, ms) / 1000)
   const mins = Math.floor(totalSecs / 60)
   const secs = totalSecs % 60
   return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
