@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-tertiary-fixed": "#001d32",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e8e8e6",
+              "error": "#ba1a1a",
+              "primary-container": "#b15f00",
+              "error-container": "#ffdad6",
+              "tertiary-fixed": "#cee5ff",
+              "background": "#f9f9f7",
+              "primary-fixed": "#ffdcc3",
+              "surface-bright": "#f9f9f7",
+              "primary": "#8d4b00",
+              "on-secondary-fixed": "#2f1500",
+              "on-error-container": "#93000a",
+              "on-background": "#1a1c1b",
+              "inverse-primary": "#ffb77d",
+              "on-primary": "#ffffff",
+              "tertiary": "#006096",
+              "on-tertiary-container": "#fdfcff",
+              "on-primary-container": "#fffbff",
+              "surface-container": "#eeeeec",
+              "inverse-on-surface": "#f1f1ef",
+              "surface-container-low": "#f4f4f2",
+              "secondary": "#82542c",
+              "on-secondary-fixed-variant": "#673d17",
+              "surface": "#f9f9f7",
+              "on-secondary-container": "#784c25",
+              "tertiary-fixed-dim": "#96ccff",
+              "on-secondary": "#ffffff",
+              "secondary-fixed": "#ffdcc3",
+              "outline": "#887364",
+              "on-primary-fixed": "#2f1500",
+              "surface-dim": "#dadad8",
+              "on-tertiary": "#ffffff",
+              "inverse-surface": "#2f3130",
+              "on-tertiary-fixed-variant": "#004a75",
+              "on-primary-fixed-variant": "#6e3900",
+              "outline-variant": "#dbc2b0",
+              "secondary-fixed-dim": "#f7ba8a",
+              "primary-fixed-dim": "#ffb77d",
+              "on-surface-variant": "#554336",
+              "on-surface": "#1a1c1b",
+              "tertiary-container": "#007abd",
+              "surface-variant": "#e2e3e1",
+              "surface-container-highest": "#e2e3e1",
+              "secondary-container": "#fdbf8f",
+              "surface-tint": "#904d00",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body antialiased">
+<!-- BACKGROUND CONTENT (DIMMED MENU SCREEN) -->
+<main class="fixed inset-0 overflow-hidden brightness-[0.6] pointer-events-none">
+<!-- TopAppBar Placeholder -->
+<header class="bg-[#F9F9F7] flex justify-between items-center px-5 h-16 w-full fixed top-0 z-50">
+<span class="material-symbols-outlined text-stone-900">menu</span>
+<h1 class="text-xl font-bold tracking-widest uppercase text-stone-900">Gasthaus</h1>
+<div class="w-8 h-8 rounded-full bg-stone-300 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="close-up portrait of a professional chef in a white uniform smiling warmly" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMm-_AdCm4btigdxp0EGRhqCocXdXJKtLsiEd4kbSzbdi3JL6tKhxekn56QpeCCqufl0vR1oTBSX-MOyY1y9_cc7eLQrJMhcC4UlTQ_o7Ub1okoeyh4ySxEEViu4879C5sWHmd9Om77rzHIqUfnqTczUJDBvJb8VHJFJnHxCazZiPlJfmtN6-GrQE0O02zcH-dTVzWrHQk4YWDQTZDwlBlh-Pw23REGJ4u-4k6hSrcxAdOlN87-KP_GMMpEdOGBOSEAY6CiFBIVQ"/>
+</div>
+</header>
+<div class="pt-20 px-5 space-y-8">
+<div class="space-y-2">
+<p class="text-[13px] font-bold uppercase tracking-[0.08em] text-on-surface-variant">Today's Specials</p>
+<div class="h-48 w-full bg-surface-container-low rounded-xl"></div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="h-40 bg-surface-container-low rounded-xl"></div>
+<div class="h-40 bg-surface-container-low rounded-xl"></div>
+</div>
+</div>
+</main>
+<!-- DIM OVERLAY -->
+<div class="fixed inset-0 bg-black/40 z-[60]"></div>
+<!-- ITEM DETAIL BOTTOM SHEET -->
+<div class="fixed bottom-0 left-0 right-0 h-[751px] bg-surface-container-lowest z-[70] rounded-t-[20px] overflow-hidden flex flex-col shadow-2xl">
+<!-- Drag Handle -->
+<div class="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-[#E5E7EB] rounded-full z-[80]"></div>
+<div class="flex-1 overflow-y-auto hide-scrollbar pb-32">
+<!-- Food Image -->
+<div class="relative w-full h-[200px] bg-surface-variant">
+<img class="w-full h-full object-cover" data-alt="gourmet plated salmon dish with microgreens and citrus glaze on a matte ceramic plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWcTp-QMG92N9jO3_XvSY4j_ZJTjxBSHq3B0ccinec2Yykm-9bHm9gH7sqzkdGC2bN4jeesVwQj3QrGjqN_LHxsUalV3S3bo9D5sxbeEq3iNRmnWRuF-32_F0o7mRapdTFjGINS2v2HKhEeOoIu6dM77LfQNDbZzd7_AxKkVC7ZHrJKzpwQwvG4Itti5a199oFu3ezo5SsvDf6LqLArSAmBZwIaQQK7O7fYpIgWSlQQtgURcBbyz33oAB6s9eCaRlSjYGyIuAujg"/>
+<!-- Close Button -->
+<button class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center bg-white/80 rounded-full text-[#111827] backdrop-blur-sm">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Content Area -->
+<div class="px-5 pt-5 space-y-4">
+<div class="space-y-1">
+<h2 class="text-[22px] font-bold text-[#111827] leading-tight line-clamp-2">Pan-Seared Highland Salmon with Citrus Reduction</h2>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-base text-[#D97706]" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="text-sm font-bold text-[#111827]">4.6</span>
+<span class="text-[13px] text-[#9CA3AF]">(124 reviews)</span>
+</div>
+</div>
+<div class="text-2xl font-bold text-[#D97706]">Rs. 1,200</div>
+<div class="space-y-1">
+<p class="text-sm text-[#6B7280] leading-relaxed line-clamp-3">
+                        Fresh Atlantic salmon fillet, expertly seared for a crisp skin and buttery interior. Served with a reduction of blood orange and local herbs, accompanied by roasted seasonal greens.
+                    </p>
+<button class="text-sm font-semibold text-[#D97706] hover:underline transition-all">Read more</button>
+</div>
+<!-- AI Review Summary Section -->
+<div class="bg-[#FFFBEB] border border-[#FDE68A] rounded-[10px] p-3 space-y-1.5">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm text-[#D97706]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-[#D97706]">AI Summary</span>
+</div>
+<p class="text-[13px] text-[#6B7280] italic leading-snug">
+                        Customers love the rich, buttery texture and the subtle hint of herbs. Most recommend it for a light but satisfying lunch.
+                    </p>
+</div>
+<!-- Extras/Customization Placeholder (Design System Editorial Style) -->
+<div class="pt-6 space-y-4">
+<p class="text-[13px] font-bold uppercase tracking-[0.08em] text-on-surface-variant">Side Pairings</p>
+<div class="space-y-3">
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<span class="text-sm font-medium">Truffle Mash</span>
+<span class="text-sm text-[#D97706] font-bold">+ Rs. 250</span>
+</div>
+<div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+<span class="text-sm font-medium">Asparagus spears</span>
+<span class="text-sm text-[#D97706] font-bold">+ Rs. 180</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Quantity + Add to Cart Row -->
+<div class="absolute bottom-0 left-0 right-0 bg-surface-container-lowest px-5 py-6 pb-safe flex items-center gap-4 border-t border-outline-variant/10">
+<!-- Quantity Selector -->
+<div class="flex items-center gap-4">
+<button class="w-8 h-8 flex items-center justify-center bg-[#F3F4F6] rounded-full text-[#111827] active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-lg">remove</span>
+</button>
+<span class="text-base font-bold text-[#111827] w-4 text-center">1</span>
+<button class="w-8 h-8 flex items-center justify-center bg-[#D97706] rounded-full text-white active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+<!-- Add to Cart Button -->
+<button class="flex-1 h-[52px] bg-[#D97706] text-white rounded-[10px] font-bold text-[15px] flex items-center justify-center gap-1 shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+<span>Add to Cart</span>
+<span class="opacity-60 mx-1">·</span>
+<span>Rs. 1,200</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar (Hidden or Inactive under sheet, but styled per JSON) -->
+<nav class="fixed bottom-0 left-0 w-full h-20 bg-stone-950 flex justify-around items-center px-4 pb-safe z-40 opacity-50 blur-[2px]">
+<div class="flex flex-col items-center justify-center text-stone-400 px-4 py-2">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="font-inter text-[11px] font-bold uppercase tracking-widest mt-1">Menu</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 px-4 py-2">
+<span class="material-symbols-outlined">calendar_today</span>
+<span class="font-inter text-[11px] font-bold uppercase tracking-widest mt-1">Reservations</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 px-4 py-2">
+<span class="material-symbols-outlined">auto_awesome</span>
+<span class="font-inter text-[11px] font-bold uppercase tracking-widest mt-1">Specials</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 px-4 py-2">
+<span class="material-symbols-outlined">person</span>
+<span class="font-inter text-[11px] font-bold uppercase tracking-widest mt-1">Profile</span>
+</div>
+</nav>
+</body></html>

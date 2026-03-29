@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gasthaus - My Orders</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "secondary-fixed-dim": "#f7ba8a",
+                        "on-tertiary-container": "#fdfcff",
+                        "surface-variant": "#e2e3e1",
+                        "on-error": "#ffffff",
+                        "on-background": "#1a1c1b",
+                        "on-secondary-container": "#784c25",
+                        "outline": "#887364",
+                        "inverse-primary": "#ffb77d",
+                        "on-secondary-fixed-variant": "#673d17",
+                        "on-secondary-fixed": "#2f1500",
+                        "surface-dim": "#dadad8",
+                        "background": "#f9f9f7",
+                        "on-primary-fixed-variant": "#6e3900",
+                        "on-primary-fixed": "#2f1500",
+                        "on-tertiary": "#ffffff",
+                        "secondary-container": "#fdbf8f",
+                        "on-tertiary-fixed-variant": "#004a75",
+                        "on-tertiary-fixed": "#001d32",
+                        "tertiary-fixed": "#cee5ff",
+                        "primary-fixed": "#ffdcc3",
+                        "on-primary-container": "#fffbff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-tint": "#904d00",
+                        "primary-fixed-dim": "#ffb77d",
+                        "tertiary-container": "#007abd",
+                        "on-primary": "#ffffff",
+                        "surface-container-low": "#f4f4f2",
+                        "error": "#ba1a1a",
+                        "outline-variant": "#dbc2b0",
+                        "tertiary": "#006096",
+                        "primary-container": "#b15f00",
+                        "surface-container-highest": "#e2e3e1",
+                        "surface-bright": "#f9f9f7",
+                        "inverse-surface": "#2f3130",
+                        "inverse-on-surface": "#f1f1ef",
+                        "secondary": "#82542c",
+                        "on-surface-variant": "#554336",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "surface": "#f9f9f7",
+                        "primary": "#8d4b00",
+                        "secondary-fixed": "#ffdcc3",
+                        "surface-container-high": "#e8e8e6",
+                        "surface-container": "#eeeeec",
+                        "on-surface": "#1a1c1b",
+                        "tertiary-fixed-dim": "#96ccff",
+                        "on-secondary": "#ffffff"
+                    },
+                    fontFamily: {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background font-body text-on-surface min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 bg-stone-900 dark:bg-black w-full h-14 flex items-center justify-between px-5 transition-opacity hover:opacity-80">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-amber-600 dark:text-amber-500 cursor-pointer active:scale-95 transition-transform">arrow_back</span>
+<h1 class="font-sans font-bold text-lg tracking-tight text-white">Orders</h1>
+</div>
+<div class="text-xl font-bold text-white">Gasthaus</div>
+</header>
+<!-- Sub-header Branding (As requested: Title "My Orders" left-aligned) -->
+<div class="bg-white px-5 py-4 h-14 flex items-center">
+<h2 class="text-[22px] font-bold text-[#111827]">My Orders</h2>
+</div>
+<main class="max-w-md mx-auto">
+<!-- Filter Chips -->
+<div class="flex overflow-x-auto no-scrollbar gap-3 px-5 py-6">
+<button class="px-5 py-2 rounded-full bg-[#1C1C1E] text-white text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                All
+            </button>
+<button class="px-5 py-2 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                Active
+            </button>
+<button class="px-5 py-2 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                Completed
+            </button>
+<button class="px-5 py-2 rounded-full bg-white border border-[#E5E7EB] text-[#6B7280] text-sm font-medium whitespace-nowrap active:scale-95 transition-transform">
+                Cancelled
+            </button>
+</div>
+<!-- Orders List -->
+<div class="flex flex-col gap-3 px-5">
+<!-- Order Card: PREPARING -->
+<div class="bg-white rounded-xl border border-[#E5E7EB] p-4 flex flex-col gap-3 transition-colors hover:bg-surface-container-lowest">
+<div class="flex justify-between items-center">
+<span class="text-sm font-bold text-[#111827]">Order #1042</span>
+<span class="px-3 py-1 rounded-full text-[12px] font-bold bg-[#FEF3C7] text-[#D97706]">PREPARING</span>
+</div>
+<div class="text-[12px] text-[#9CA3AF]">Oct 24, 2023 • 12:45 PM</div>
+<div class="flex items-center gap-2">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-lg border-2 border-white object-cover shadow-sm" data-alt="Close-up of a vibrant healthy salad bowl with fresh greens, radish, and balsamic glaze on a white plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEa-IDPqG6OLOTyQ8xwCSp_fjq_RUhpdVoi-3OJmEGc2SG888yeIYv230RnP38zWvqrtZLWeBNKBvj2xnexibakFFm3d02EHEwJcA49nPKJ38rLQQlUSfYOOV7hd3etklxlJn96CtvmaklfDc7ZoToJUrULJEZeOxU2j28hzM2GxmwW0RSEyEwLblmomWAW_nImSJeQyBeZRFBlO1_nJ1GqKXxgXutko5websjnKOwNbVOKnWu6lz2KIA0-s3B3bRmyi4pYIA96A"/>
+<img class="w-8 h-8 rounded-lg border-2 border-white object-cover shadow-sm" data-alt="Artisanal wood-fired pizza with melted mozzarella, fresh basil, and ripe tomatoes with charred crust" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhQtqY8Li2yvvN3FcRyK2n9p-l_HBhMGr03MPLni-36R1OJ-fAbrhnvVlMmw5Gqi_5wBgw8DnSs0h_JlePMcKWTeU2NF0ZNxe_ZuyrHR1chQtIZYoHtVkJya2odp8Kdbx4Gp19GA-Z93VywlrHzKmy1PN_dnLf27Vh-SvtLbgF5xLPeKKx9q1XrN5Jl_Lcs_cBBpWfumhu7thtGAbnGA5g2P0HC1w9Zn3xTr9ree1ywUMptyNQntrFzMcYkKQoeH5kYucEJ8n54Q"/>
+<img class="w-8 h-8 rounded-lg border-2 border-white object-cover shadow-sm" data-alt="Decadent chocolate lava cake with a molten center and dusting of powdered sugar on dark plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDa9_PIlSBR8jP30Gmsx18LOPz3F45aeOfDjO3uhijlQadJkjO9Uq_5r9e2sV7A8H-BvqF3Q4g4CrrW_biQKeMwneWxgK3064_adNY-hzQQEjnAVnFrA76vESiYf_6Zt47GAnwwAg04lVDXLpofItJP22GHWvs4UqwrJvoUWPBgWwfVfZ8xerG03HGxL5Q1EJ8g82iX2mG9qovh33IlLOFro8NGzuL2uIIiJ0RY0cfZSTg3_hVJnnzU4kCREz7JD_6OSO1aW2w8ow"/>
+</div>
+<span class="text-[12px] text-[#6B7280]">· 3 items</span>
+</div>
+<div class="pt-3 border-t border-[#F3F4F6] flex justify-between items-center">
+<span class="text-[13px] text-[#6B7280]">Total</span>
+<span class="text-[15px] font-bold text-[#D97706]">$42.50</span>
+</div>
+</div>
+<!-- Order Card: READY -->
+<div class="bg-white rounded-xl border border-[#E5E7EB] p-4 flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-sm font-bold text-[#111827]">Order #1039</span>
+<span class="px-3 py-1 rounded-full text-[12px] font-bold bg-[#ECFDF5] text-[#16A34A]">READY</span>
+</div>
+<div class="text-[12px] text-[#9CA3AF]">Oct 24, 2023 • 11:20 AM</div>
+<div class="flex items-center gap-2">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-lg border-2 border-white object-cover shadow-sm" data-alt="Fluffy stack of buttermilk pancakes topped with honey, butter, and fresh seasonal berries" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCFfOYqC1fzDBN0rRb3G0g52YSiFCPnmtwAfPqZxPx6bk8_wepgApNe8jNFx15fVeeEKktp5BLXynx4Hxq48sfmbcAe0b9XLiEp70KMMvI5Dmp_Ey1GisAfVZR2HdDfYfWNrkBCEXl1n4H2cOmNGLGX97o7beXIpi4GzE0yPh3GqB2T99h-tjaQVhkEoX8jrAJf6Eklr_FYuIqFvT6ayaecJ5m9D-lbWF8Y3PHJ-LsglPcrFEHO6KsNXPTMjO28SIRkG1XvNUwOXg"/>
+<img class="w-8 h-8 rounded-lg border-2 border-white object-cover shadow-sm" data-alt="Gourmet beef burger with melted cheese, caramelized onions and crisp lettuce on a toasted brioche bun" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAW4MXYxJnnQ_XQ1n-3VQPRuLy9vEpdGQ4A_6Y3eGFn3DhkazFNs0OiuYN4CS4kmZcQMsTRSGZuet6uFmBNDLN5tMELaFudkUeZTT-GqzJTaduXfzs-fwnEtLJzZO0K56kAoO7sPqXLm8rLgaFOsEC5sMtlKo3ZDVTAMDT0gtN_W6W501Q71_ids5JpCOQEPqxw2MI44KqwdI-H1kbLctnOrPjK-uf2ja-d_7AUxWAJV0h9VLRtyFI-bfTYQsPQV87YRnZWCi1EtA"/>
+</div>
+<span class="text-[12px] text-[#6B7280]">· 2 items</span>
+</div>
+<div class="pt-3 border-t border-[#F3F4F6] flex justify-between items-center">
+<span class="text-[13px] text-[#6B7280]">Total</span>
+<span class="text-[15px] font-bold text-[#D97706]">$28.90</span>
+</div>
+</div>
+<!-- Order Card: COMPLETED -->
+<div class="bg-white rounded-xl border border-[#E5E7EB] p-4 flex flex-col gap-3">
+<div class="flex justify-between items-start">
+<div class="flex flex-col gap-1">
+<span class="text-sm font-bold text-[#111827]">Order #1021</span>
+<div class="text-[12px] text-[#9CA3AF]">Oct 23, 2023 • 07:15 PM</div>
+</div>
+<div class="flex flex-col items-end gap-2">
+<span class="px-3 py-1 rounded-full text-[12px] font-bold bg-[#F9FAFB] text-[#374151]">COMPLETED</span>
+<button class="text-[13px] font-bold text-[#D97706] hover:underline transition-all">Leave Review</button>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex -space-x-2">
+<img class="w-8 h-8 rounded-lg border-2 border-white object-cover shadow-sm" data-alt="Freshly prepared bowl of organic vegetables and quinoa with a lemon herb dressing in soft natural light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDoZ9zSmDkMsyyDtrcq8VOBC113gZ-SwbLDGQXEuP25d4T4dX484eaKIxfrVIB47OFnOFhPpIVMOCIl_hMMDzazvOhxcTkZ3TO7bzDxmnjwk6IAx_D-68mrF2a2_HzRNPQvRG3_IUnckYQN2lAW0D6vfosA3ixmqjftmsgyr4_4Dzn-Wfz4FeFv4ioaEpZN8mw6A0cak67yMvG_X_koVtHp3lJPbql2tVDkJZsOGbSMHOLvUfOY2WDvP_r5iaMhrQESxW9NXv-_xg"/>
+</div>
+<span class="text-[12px] text-[#6B7280]">· 1 item</span>
+</div>
+<div class="pt-3 border-t border-[#F3F4F6] flex justify-between items-center">
+<span class="text-[13px] text-[#6B7280]">Total</span>
+<span class="text-[15px] font-bold text-[#D97706]">$18.00</span>
+</div>
+</div>
+<!-- Empty space for editorial asymmetry as per system -->
+<div class="h-20"></div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 bg-stone-900/80 dark:bg-black/80 backdrop-blur-xl flex justify-around items-center h-16 px-4 border-t border-white/5 pb-safe">
+<a class="flex flex-col items-center justify-center text-stone-500 hover:text-amber-400 transition-opacity active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-[24px]">restaurant_menu</span>
+<span class="text-[11px] font-bold uppercase tracking-widest mt-1">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-amber-500 scale-110 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">receipt_long</span>
+<span class="text-[11px] font-bold uppercase tracking-widest mt-1">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 hover:text-amber-400 transition-opacity active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-[24px]">smart_toy</span>
+<span class="text-[11px] font-bold uppercase tracking-widest mt-1">AI Waiter</span>
+</a>
+<a class="flex flex-col items-center justify-center text-stone-500 hover:text-amber-400 transition-opacity active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="text-[11px] font-bold uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

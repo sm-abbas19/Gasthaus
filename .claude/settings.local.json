@@ -14,7 +14,11 @@
       "Bash(ls:*)",
       "Bash(cat:*)",
       "Bash(grep:*)",
-      "Bash(find /home/smabbas/Gasthaus -name .env* -o -name application*.properties)"
+      "Bash(find /home/smabbas/Gasthaus -name .env* -o -name application*.properties)",
+      "Bash(flutter --version)",
+      "Bash(flutter doctor:*)",
+      "Bash(flutter emulators:*)",
+      "Bash(emulator -list-avds)"
     ]
   }
 }
