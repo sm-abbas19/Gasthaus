@@ -9,6 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -86,6 +87,11 @@ public class UserService {
      * Later phases may introduce a @ControllerAdvice for cleaner error responses,
      * but ResponseStatusException works fine for now.
      */
+    /** Returns all KITCHEN and MANAGER accounts, ordered by name. */
+    public List<User> getStaff() {
+        return userRepository.findByRoleInOrderByNameAsc(List.of(Role.KITCHEN, Role.MANAGER));
+    }
+
     public User create(String name, String email, String password, Role role) {
         // Duplicate email check — same logic as NestJS
         if (userRepository.existsByEmail(email)) {

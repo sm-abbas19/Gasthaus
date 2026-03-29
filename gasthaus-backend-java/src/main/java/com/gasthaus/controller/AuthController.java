@@ -3,13 +3,17 @@ package com.gasthaus.controller;
 import com.gasthaus.dto.auth.AuthResponse;
 import com.gasthaus.dto.auth.LoginRequest;
 import com.gasthaus.dto.auth.RegisterRequest;
+import com.gasthaus.dto.auth.RegisterStaffRequest;
 import com.gasthaus.dto.auth.UserResponse;
 import com.gasthaus.entity.User;
 import com.gasthaus.service.AuthService;
+import com.gasthaus.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import java.util.List;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -39,6 +43,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserService userService;
 
     // ─── POST /api/auth/register ─────────────────────────────────
 
@@ -60,9 +65,24 @@ public class AuthController {
      * We keep 200 to match NestJS behavior (NestJS defaults to 200 for POST as well, unless
      * @HttpCode(201) is specified — which it isn't in the original AuthController).
      */
+    /** Public — creates CUSTOMER accounts only. */
     @PostMapping("/register")
     public AuthResponse register(@Valid @RequestBody RegisterRequest dto) {
         return authService.register(dto);
+    }
+
+    /** MANAGER only — creates KITCHEN or MANAGER staff accounts. */
+    @PostMapping("/register/staff")
+    @PreAuthorize("hasRole('MANAGER')")
+    public AuthResponse registerStaff(@Valid @RequestBody RegisterStaffRequest dto) {
+        return authService.registerStaff(dto);
+    }
+
+    /** MANAGER only — lists all staff accounts (KITCHEN + MANAGER). */
+    @GetMapping("/staff")
+    @PreAuthorize("hasRole('MANAGER')")
+    public List<UserResponse> getStaff() {
+        return userService.getStaff().stream().map(UserResponse::from).toList();
     }
 
     // ─── POST /api/auth/login ────────────────────────────────────

@@ -11,6 +11,7 @@ import {
   Table2,
   Star,
   TrendingUp,
+  Users,
   LogOut,
 } from 'lucide-react'
 import { getUser, clearAuth } from '@/lib/auth'
@@ -23,6 +24,7 @@ const navItems = [
   { label: 'Tables',    href: '/tables',    icon: Table2 },
   { label: 'Reviews',   href: '/reviews',   icon: Star },
   { label: 'Insights',  href: '/insights',  icon: TrendingUp },
+  { label: 'Staff',     href: '/staff',     icon: Users },
 ]
 
 export default function Sidebar() {

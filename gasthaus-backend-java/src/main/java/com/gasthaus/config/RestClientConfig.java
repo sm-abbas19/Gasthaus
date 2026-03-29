@@ -36,10 +36,13 @@ public class RestClientConfig {
      *   }
      */
     @Bean("fastApiClient")
-    public RestClient fastApiClient(@Value("${app.fastapi.url}") String fastApiUrl) {
+    public RestClient fastApiClient(
+            @Value("${app.fastapi.url}") String fastApiUrl,
+            @Value("${app.fastapi.internal-key}") String internalKey) {
         return RestClient.builder()
                 .baseUrl(fastApiUrl)
                 .defaultHeader("Content-Type", "application/json")
+                .defaultHeader("X-Internal-Key", internalKey)
                 .build();
     }
 }

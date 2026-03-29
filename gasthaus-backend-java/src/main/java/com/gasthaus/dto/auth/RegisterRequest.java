@@ -1,6 +1,5 @@
 package com.gasthaus.dto.auth;
 
-import com.gasthaus.entity.enums.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -18,8 +17,8 @@ import jakarta.validation.constraints.Size;
  * We use a class (not a record) so Jackson can deserialize it
  * without needing extra configuration (records need @JsonCreator or a custom module).
  *
- * The `role` field is optional — defaults to CUSTOMER in UserService if null.
- * NestJS equivalent: @IsOptional() @IsEnum(Role) role?: Role
+ * Role is NOT accepted here — public registration always creates CUSTOMER accounts.
+ * Staff accounts (KITCHEN, MANAGER) are created via POST /auth/register/staff (MANAGER only).
  */
 public class RegisterRequest {
 
@@ -46,17 +45,6 @@ public class RegisterRequest {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    /**
-     * Optional role. Null is allowed here — UserService defaults to CUSTOMER.
-     * NestJS: @IsOptional() @IsEnum(Role) role?: Role
-     *
-     * No @NotNull so Jackson sets it to null when omitted from the request body.
-     */
-    private Role role;
-
-    // ── Standard getters/setters (needed by Jackson for deserialization) ──
-    // We avoid Lombok @Data here because this is a DTO — no entity-style concerns.
-
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
@@ -65,7 +53,4 @@ public class RegisterRequest {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-
-    public Role getRole() { return role; }
-    public void setRole(Role role) { this.role = role; }
 }

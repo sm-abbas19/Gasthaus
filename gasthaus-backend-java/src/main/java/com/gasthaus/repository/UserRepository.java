@@ -1,9 +1,11 @@
 package com.gasthaus.repository;
 
 import com.gasthaus.entity.User;
+import com.gasthaus.entity.enums.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -43,4 +45,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * Used in UsersService.create() to detect duplicate emails.
      */
     boolean existsByEmail(String email);
+
+    /** Returns all users with the given roles, ordered by name. Used by MANAGER staff list. */
+    List<User> findByRoleInOrderByNameAsc(List<Role> roles);
 }

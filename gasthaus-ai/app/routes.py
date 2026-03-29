@@ -1,18 +1,24 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from app.models import (
     RecommendRequest, RecommendResponse,
     InsightsRequest, InsightsResponse,
     ReviewSummaryRequest, ReviewSummaryResponse,
 )
 from app.database import ai_sessions_collection
-from app.config import GEMINI_API_KEY
+from app.config import GEMINI_API_KEY, AI_INTERNAL_KEY
 from google import genai
 from google.genai import types
 from datetime import datetime
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-router = APIRouter()
+
+def verify_internal_key(x_internal_key: str = Header(...)):
+    if x_internal_key != AI_INTERNAL_KEY:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+
+router = APIRouter(dependencies=[Depends(verify_internal_key)])
 
 
 # ─── Helper ───────────────────────────────────────
@@ -46,9 +52,10 @@ async def recommend(req: RecommendRequest):
                     )
                 )
 
-        # System prompt with menu context
+        # System prompt passed as system_instruction — kept separate from user turn
+        # This prevents user message from overriding or leaking the system context
         menu_text = format_menu(req.menuItems)
-        system_prompt = f"""You are a friendly AI waiter for Gasthaus restaurant.
+        system_instruction = f"""You are a friendly AI waiter for Gasthaus restaurant.
 Your job is to help customers choose what to order based on their preferences.
 Always recommend specific items from the menu below and explain why they match.
 Keep responses concise and conversational.
@@ -57,19 +64,21 @@ If asked about something not on the menu, politely redirect to available items.
 Current Menu:
 {menu_text}"""
 
-        # Add current user message
-        full_message = f"{system_prompt}\n\nCustomer: {req.message}"
+        # Add current user message as its own turn (not mixed with system context)
         contents.append(
             types.Content(
                 role="user",
-                parts=[types.Part(text=full_message)]
+                parts=[types.Part(text=req.message)]
             )
         )
 
-        # Call Gemini
+        # Call Gemini with system_instruction separate from conversation contents
         response = client.models.generate_content(
             model="gemini-3.1-flash-lite-preview",
             contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+            ),
         )
         reply = response.text
 

@@ -11,8 +11,7 @@ import { redisStore } from 'cache-manager-ioredis-yet';
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => ({
         store: redisStore,
-        host: 'localhost',
-        port: 6379,
+        url: config.get<string>('REDIS_URL', 'redis://localhost:6379'),
         ttl: 300, // 5 minutes default
       }),
       isGlobal: true,

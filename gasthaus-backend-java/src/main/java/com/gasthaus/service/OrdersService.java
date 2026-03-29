@@ -130,7 +130,7 @@ public class OrdersService {
 
         if (!missingIds.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "One or more items are unavailable or do not exist: " + missingIds);
+                    "One or more items are unavailable or do not exist.");
         }
 
         // Build a lookup map for O(1) price access — NestJS: new Map(menuItems.map(item => [item.id, item]))

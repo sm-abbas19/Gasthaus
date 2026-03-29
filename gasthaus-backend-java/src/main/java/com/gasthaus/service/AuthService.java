@@ -3,6 +3,7 @@ package com.gasthaus.service;
 import com.gasthaus.dto.auth.AuthResponse;
 import com.gasthaus.dto.auth.LoginRequest;
 import com.gasthaus.dto.auth.RegisterRequest;
+import com.gasthaus.dto.auth.RegisterStaffRequest;
 import com.gasthaus.dto.auth.UserResponse;
 import com.gasthaus.entity.User;
 import com.gasthaus.entity.enums.Role;
@@ -49,12 +50,21 @@ public class AuthService {
      * UserService.create() handles the duplicate email check and bcrypt hashing.
      * We then sign a JWT and return both together as AuthResponse.
      */
+    /** Public registration — always creates CUSTOMER. Role field not accepted. */
     public AuthResponse register(RegisterRequest dto) {
-        Role role = dto.getRole(); // null → UserService defaults to CUSTOMER
-
-        User user = userService.create(dto.getName(), dto.getEmail(), dto.getPassword(), role);
+        User user = userService.create(dto.getName(), dto.getEmail(), dto.getPassword(), Role.CUSTOMER);
         String token = signToken(user);
+        return new AuthResponse(UserResponse.from(user), token);
+    }
 
+    /** Staff registration — MANAGER only. Creates KITCHEN or MANAGER accounts. */
+    public AuthResponse registerStaff(RegisterStaffRequest dto) {
+        if (dto.getRole() == Role.CUSTOMER) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Use /auth/register to create customer accounts.");
+        }
+        User user = userService.create(dto.getName(), dto.getEmail(), dto.getPassword(), dto.getRole());
+        String token = signToken(user);
         return new AuthResponse(UserResponse.from(user), token);
     }
 
