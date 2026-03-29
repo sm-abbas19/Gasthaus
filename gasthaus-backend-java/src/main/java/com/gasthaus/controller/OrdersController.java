@@ -78,7 +78,7 @@ public class OrdersController {
      * hasAnyRole() is the multi-role equivalent of NestJS's @Roles() with multiple values.
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('WAITER','KITCHEN','MANAGER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public List<Order> getAllOrders() {
         return ordersService.getAllOrders();
     }
@@ -115,7 +115,7 @@ public class OrdersController {
      *   updateStatus(@Param('id') id: string, @Body() dto: UpdateOrderStatusDto)
      */
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('WAITER','KITCHEN','MANAGER')")
+    @PreAuthorize("hasAnyRole('KITCHEN','MANAGER')")
     public Order updateStatus(@PathVariable UUID id,
                               @Valid @RequestBody UpdateOrderStatusRequest dto) {
         return ordersService.updateStatus(id, dto);

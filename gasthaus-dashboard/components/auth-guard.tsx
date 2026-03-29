@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { isAuthenticated, getUser, clearAuth } from '@/lib/auth'
 
-// Roles that may access the staff dashboard
-const STAFF_ROLES = ['WAITER', 'KITCHEN', 'MANAGER']
+// Only MANAGER may access the main staff dashboard
+const STAFF_ROLES = ['MANAGER']
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter()

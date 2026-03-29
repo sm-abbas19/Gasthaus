@@ -48,7 +48,7 @@ public class TablesController {
      * Returns all tables ordered by tableNumber (floor plan data).
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('MANAGER','WAITER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public List<RestaurantTable> getAllTables() {
         return tablesService.getAllTables();
     }
@@ -63,7 +63,7 @@ public class TablesController {
      * (literal "stats" beats path variable {id}) but explicit ordering is clearer.
      */
     @GetMapping("/stats")
-    @PreAuthorize("hasAnyRole('MANAGER','WAITER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public TableStatsResponse getTableStats() {
         return tablesService.getTableStats();
     }
@@ -87,7 +87,7 @@ public class TablesController {
      * NestJS: @Roles(Role.MANAGER, Role.WAITER) getTableById(@Param('id') id)
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('MANAGER','WAITER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public TableDetailResponse getTableById(@PathVariable UUID id) {
         return tablesService.getTableById(id);
     }
@@ -133,7 +133,7 @@ public class TablesController {
      * Flips the isOccupied boolean on the table.
      */
     @PatchMapping("/{id}/toggle")
-    @PreAuthorize("hasAnyRole('MANAGER','WAITER')")
+    @PreAuthorize("hasRole('MANAGER')")
     public RestaurantTable toggleOccupied(@PathVariable UUID id) {
         return tablesService.toggleOccupied(id);
     }

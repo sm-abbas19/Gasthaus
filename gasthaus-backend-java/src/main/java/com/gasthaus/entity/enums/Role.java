@@ -13,7 +13,6 @@ package com.gasthaus.entity.enums;
  */
 public enum Role {
     CUSTOMER,
-    WAITER,
     KITCHEN,
     MANAGER
 }
