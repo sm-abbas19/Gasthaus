@@ -311,7 +311,7 @@ public class MenuService {
             return (String) result.get("secure_url");
         } catch (IOException e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Image upload failed: " + e.getMessage());
+                    "Image upload failed. Please try again.");
         }
     }
 }

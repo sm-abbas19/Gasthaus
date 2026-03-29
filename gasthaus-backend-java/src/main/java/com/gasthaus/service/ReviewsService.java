@@ -144,7 +144,7 @@ public class ReviewsService {
      */
     @Transactional(readOnly = true)
     public List<Review> getReviewsByOrder(UUID orderId, UUID customerId) {
-        Order order = orderRepository.findById(orderId)
+        Order order = orderRepository.findByIdWithDetails(orderId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Order not found"));
 
         if (!order.getCustomer().getId().equals(customerId)) {
