@@ -12,6 +12,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
           queries: {
             staleTime: 30_000,      // 30 s before refetch in background
             retry: 1,
+            placeholderData: (prev: unknown) => prev, // keep previous data while reloading
           },
         },
       }),
