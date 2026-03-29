@@ -10,7 +10,8 @@
       "Bash(grep -n 'HttpCode\\\\|HttpStatus\\\\|201\\\\|204\\\\|201\\\\b' /home/smabbas/Gasthaus/gasthaus-backend/src/**/*.controller.ts)",
       "Bash(docker exec:*)",
       "Bash(python3 -c \"import sys,json; d=sys.stdin.read\\(\\); obj=json.loads\\(d\\); print\\(''''items type:'''', obj[1][0][''''items''''][0]\\)\")",
-      "Bash(test-api-verbose.sh:*)"
+      "Bash(test-api-verbose.sh:*)",
+      "Bash(ls:*)"
     ]
   }
 }
