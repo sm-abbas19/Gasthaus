@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { UtensilsCrossed } from 'lucide-react'
+import { UtensilsCrossed, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { createStompClient, TOPICS } from '@/lib/socket'
+import { clearAuth } from '@/lib/auth'
 import type { Order } from '@/types'
 import { OrderStatus } from '@/types'
 
@@ -76,7 +78,13 @@ const STATE_TIMER_COLOR: Record<CardState, string> = {
 
 export default function KitchenPage() {
   const queryClient               = useQueryClient()
+  const router                    = useRouter()
   const [now, setNow]             = useState(() => new Date())
+
+  function handleLogout() {
+    clearAuth()
+    router.replace('/login')
+  }
 
   // Tick every second for live timers + clock
   useEffect(() => {
@@ -137,7 +145,7 @@ export default function KitchenPage() {
           </span>
         </div>
 
-        {/* Stats */}
+        {/* Stats + Logout */}
         <div className="flex items-center gap-3">
           <div className="bg-[#2C2C2C] px-3 py-1 rounded-full">
             <span className="text-white text-[12px] font-bold">{activeCount} ACTIVE</span>
@@ -147,6 +155,13 @@ export default function KitchenPage() {
               {readyCount} READY
             </span>
           </div>
+          <button
+            onClick={handleLogout}
+            title="Log out"
+            className="ml-2 text-[#6B7280] hover:text-white transition-colors"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </header>
 
