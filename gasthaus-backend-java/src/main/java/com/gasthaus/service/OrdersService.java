@@ -269,11 +269,11 @@ public class OrdersService {
         Order updated = orderRepository.findByIdWithDetails(order.getId()).orElseThrow();
 
         // ── Emit event ──
-        // NestJS: if (status === READY) gateway.emitOrderReady(updated) else gateway.emitOrderStatusUpdate(updated)
+        // Always emit order.status so staff dashboard/orders board updates.
+        // Also emit order.ready when READY so customers can listen on that dedicated topic.
+        gateway.emitOrderStatusUpdate(updated);
         if (dto.getStatus() == OrderStatus.READY) {
             gateway.emitOrderReady(updated);
-        } else {
-            gateway.emitOrderStatusUpdate(updated);
         }
 
         return updated;
