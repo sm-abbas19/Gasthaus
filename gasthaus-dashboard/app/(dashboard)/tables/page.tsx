@@ -326,7 +326,7 @@ function TableTile({
   selected: boolean
   onClick: () => void
 }) {
-  if (table.isOccupied && order) {
+  if (table.isOccupied) {
     return (
       <div
         onClick={onClick}
@@ -339,12 +339,16 @@ function TableTile({
             <span className="text-xs font-bold text-zinc-900">T{table.tableNumber}</span>
             <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
           </div>
-          <p className="text-[10px] text-[#6B7280] truncate mt-1">
-            {order.customer?.name ?? 'Guest'}
-          </p>
-          <p className="text-[10px] font-bold text-zinc-900">
-            Rs. {order.totalAmount.toLocaleString()}
-          </p>
+          {order && (
+            <>
+              <p className="text-[10px] text-[#6B7280] truncate mt-1">
+                {order.customer?.name ?? 'Guest'}
+              </p>
+              <p className="text-[10px] font-bold text-zinc-900">
+                Rs. {order.totalAmount.toLocaleString()}
+              </p>
+            </>
+          )}
         </div>
         <div className="h-1 bg-red-500 w-full shrink-0" />
       </div>

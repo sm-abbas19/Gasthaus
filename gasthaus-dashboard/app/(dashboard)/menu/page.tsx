@@ -47,7 +47,7 @@ export default function MenuPage() {
 
   // Flatten all items with their category
   const allItems: MenuItem[] = useMemo(
-    () => categories.flatMap((c) => (c.items ?? []).map((i) => ({ ...i, category: c }))),
+    () => categories.flatMap((c) => (c.items ?? []).map((i) => ({ ...i, categoryId: c.id, category: c }))),
     [categories],
   )
 
@@ -185,7 +185,7 @@ export default function MenuPage() {
                 }`}
               >
                 <span className="truncate">{cat.name}</span>
-                <span className="text-xs text-[#9CA3AF]">{cat.items?.length ?? 0}</span>
+                <span className="text-xs text-[#9CA3AF] group-hover:invisible">{cat.items?.length ?? 0}</span>
               </button>
               {/* Delete category (hover) */}
               <button
