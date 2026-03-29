@@ -103,6 +103,11 @@ public class OrdersService {
         RestaurantTable table = tableRepository.findById(dto.getTableId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Table not found"));
 
+        if (table.getIsOccupied()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT,
+                    "Table " + table.getTableNumber() + " is already occupied");
+        }
+
         // ── Step 2: Batch-fetch menu items ──
         // NestJS: prisma.menuItem.findMany({ where: { id: { in: [...] }, isAvailable: true } })
         // One query for all items instead of N queries in a loop.
