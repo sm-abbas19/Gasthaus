@@ -23,7 +23,7 @@ export default function FullscreenLayout({
     const user = getUser()
     if (!user || !ALLOWED_ROLES.includes(user.role)) {
       clearAuth()
-      sessionStorage.setItem('login_error', 'This portal is for staff only.')
+      sessionStorage.setItem('login_error', 'ACHTUNG! Unauthorized')
       router.replace('/login')
       return
     }

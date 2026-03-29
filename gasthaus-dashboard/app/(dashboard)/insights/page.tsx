@@ -218,7 +218,7 @@ export default function InsightsPage() {
 
         {/* Hourly Orders */}
         <ChartCard title="Hourly Orders">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={160}>
             <BarChart data={hourlyData} margin={{ top: 0, right: 0, bottom: 0, left: -20 }}>
               <XAxis
                 dataKey="hour"
@@ -239,7 +239,7 @@ export default function InsightsPage() {
 
         {/* Revenue this week */}
         <ChartCard title="Revenue This Week">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={dailyRevenueData} margin={{ top: 4, right: 0, bottom: 0, left: -20 }}>
               <defs>
                 <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">

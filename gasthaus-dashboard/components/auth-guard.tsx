@@ -20,7 +20,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     if (!user || !STAFF_ROLES.includes(user.role)) {
       // CUSTOMER or unknown role — clear session so login page doesn't redirect back
       clearAuth()
-      sessionStorage.setItem('login_error', 'This portal is for staff only.')
+      sessionStorage.setItem('login_error', 'ACHTUNG! Unauthorized')
       router.replace('/login')
       return
     }
