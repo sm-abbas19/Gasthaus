@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import {
   UtensilsCrossed,
   LayoutDashboard,
@@ -11,8 +11,9 @@ import {
   Table2,
   Star,
   TrendingUp,
+  LogOut,
 } from 'lucide-react'
-import { getUser } from '@/lib/auth'
+import { getUser, clearAuth } from '@/lib/auth'
 
 const navItems = [
   { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -26,7 +27,13 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const user = getUser()
+
+  function handleLogout() {
+    clearAuth()
+    router.replace('/login')
+  }
 
   const initials = user?.name
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
@@ -71,18 +78,27 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* User */}
-      <div className="mt-auto mx-3 pt-6 border-t border-white/10 flex items-center gap-3 px-3">
-        <div className="w-8 h-8 rounded-full bg-[#D97706] flex items-center justify-center text-white text-[10px] font-bold shrink-0">
-          {initials}
-        </div>
-        <div className="min-w-0">
-          <p className="text-white text-[13px] font-medium truncate">
-            {user?.name ?? 'Admin'}
-          </p>
-          <p className="text-[#9CA3AF] text-[11px] capitalize">
-            {role.toString().charAt(0) + role.toString().slice(1).toLowerCase()}
-          </p>
+      {/* User + Logout */}
+      <div className="mt-auto mx-3 pt-6 border-t border-white/10">
+        <div className="flex items-center gap-3 px-3">
+          <div className="w-8 h-8 rounded-full bg-[#D97706] flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+            {initials}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-white text-[13px] font-medium truncate">
+              {user?.name ?? 'Admin'}
+            </p>
+            <p className="text-[#9CA3AF] text-[11px] capitalize">
+              {role.toString().charAt(0) + role.toString().slice(1).toLowerCase()}
+            </p>
+          </div>
+          <button
+            onClick={handleLogout}
+            title="Log out"
+            className="text-[#9CA3AF] hover:text-white transition-colors shrink-0"
+          >
+            <LogOut size={16} />
+          </button>
         </div>
       </div>
     </aside>
