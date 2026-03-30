@@ -1,0 +1,433 @@
+---
+  Gasthaus Application Testing Guide
+
+  Phase 0 — Start All Services
+
+  Terminal 1: PostgreSQL + Redis (Docker)
+  cd ~/Gasthaus/gasthaus-backend
+  docker compose up -d
+
+  Terminal 2: Spring Boot Backend (port 8080)
+  cd ~/Gasthaus/gasthaus-backend-java
+  mvn spring-boot:run
+  Wait until you see Started GasthausApplication in logs.
+
+  Terminal 3: FastAPI AI Service (port 8000)
+  cd ~/Gasthaus/gasthaus-ai
+  source venv/bin/activate
+  uvicorn app:app --reload --port 8000
+
+  Terminal 4: Next.js Frontend (port 3000)
+  cd ~/Gasthaus/gasthaus-dashboard
+  npm run dev
+
+  Verify all 4 are up:
+  curl -s http://localhost:8080/api/menu/categories | head -c 100
+  curl -s http://localhost:8000/health 2>/dev/null || curl -s http://localhost:8000/
+  curl -s http://localhost:3000/
+
+  ---
+  Phase 1 — Auth Testing
+
+  Open http://localhost:3000 in browser.
+
+  Test 1.1 — Unauthenticated redirect
+  - Visit http://localhost:3000/dashboard → should redirect to /login
+  - Visit http://localhost:3000/orders → should redirect to /login
+  - Visit http://localhost:3000/kitchen → should redirect to /login
+
+  Test 1.2 — Login form validation
+  - Submit empty form → zod errors appear on both fields
+  - Enter invalid email (e.g. abc) → email error
+  - Enter valid email but password < 6 chars → password error
+
+  Test 1.3 — Login with wrong credentials
+  - Email: wrong@test.com, Password: wrongpass → red error banner shows
+
+  Test 1.4 — Login as MANAGER
+  Email: (use a manager account you seeded)
+  ▎ If no accounts exist yet, create one via API first:
+  curl -X POST http://localhost:8080/api/auth/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Admin Manager","email":"manager@test.com","password":"pass123","role":"MANAGER"}'
+  - Login → should land on /dashboard
+  - Check browser localStorage: gasthaus_token and gasthaus_user keys exist
+  - Header shows correct name + avatar initials
+  - Sidebar shows all 7 nav items
+
+  Test 1.5 — Login as KITCHEN role
+  curl -X POST http://localhost:8080/api/auth/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Kitchen Staff","email":"kitchen@test.com","password":"pass123","role":"KITCHEN"}'
+  - Login as kitchen user → should redirect to /kitchen, NOT /dashboard
+
+  Test 1.6 — Login as WAITER
+  curl -X POST http://localhost:8080/api/auth/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Waiter One","email":"waiter@test.com","password":"pass123","role":"WAITER"}'
+  - Login as waiter → should land on /dashboard
+
+  Test 1.7 — Logout / session expiry
+  - While logged in, manually delete gasthaus_token from DevTools → Application → Local Storage
+  - Refresh page → redirects to /login
+
+  ---
+  Phase 2 — Dashboard Page
+
+  Login as MANAGER. Go to /dashboard.
+
+  Test 2.1 — Seed some data first
+  # Get manager token
+  TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"manager@test.com","password":"pass123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+  echo "Token: $TOKEN"
+
+  # Create tables
+  for i in 1 2 3 4 5; do
+    curl -s -X POST http://localhost:8080/api/tables \
+      -H "Authorization: Bearer $TOKEN" \
+      -H "Content-Type: application/json" \
+      -d "{\"tableNumber\": $i}"
+  done
+
+  # Create menu category
+  CAT=$(curl -s -X POST http://localhost:8080/api/menu/categories \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Mains","icon":"🍽️ "}')
+  CAT_ID=$(echo $CAT | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+
+  # Create a menu item (no image)
+  ITEM=$(curl -s -X POST http://localhost:8080/api/menu/items \
+    -H "Authorization: Bearer $TOKEN" \
+    -F "name=Beef Burger" \
+    -F "description=Juicy beef patty" \
+    -F "price=850" \
+    -F "categoryId=$CAT_ID")
+  echo $ITEM
+
+  Test 2.2 — Stat cards
+  - Register a customer and place a couple orders (see Phase 5 setup)
+  - Total Orders Today: count matches orders placed today
+  - Revenue Today: sum of totalAmount
+  - Active Tables: X/Y format, denominator = total tables created
+  - Pending Orders: count of PENDING + CONFIRMED status orders
+
+  Test 2.3 — Live Orders panel
+  - Shows last 6 orders newest-first
+  - Each row has: table badge, customer name, items summary, amount, status pill
+
+  Test 2.4 — Tables mini-map
+  - Grid shows all tables
+  - Free tables: gray/zinc appearance
+  - Occupied tables: amber appearance
+
+  ---
+  Phase 3 — Orders Kanban
+
+  Go to /orders.
+
+  Test 3.1 — Kanban columns visible
+  - 5 columns: PENDING → CONFIRMED → PREPARING → READY → SERVED
+  - Horizontal scroll works if many orders
+
+  Test 3.2 — Place test orders first
+  # Register customer
+  curl -X POST http://localhost:8080/api/auth/register \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Test Customer","email":"customer@test.com","password":"pass123","role":"CUSTOMER"}'
+
+  CUST_TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"customer@test.com","password":"pass123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+  # Get item ID
+  ITEM_ID=$(curl -s http://localhost:8080/api/menu/items | python3 -c "import sys,json; items=json.load(sys.stdin); print(items[0]['id'])")
+
+  # Place order (table 1)
+  TABLE_ID=$(curl -s -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/tables | python3 -c "import sys,json; t=json.load(sys.stdin); print(t[0]['id'])")
+
+  curl -X POST http://localhost:8080/api/orders \
+    -H "Authorization: Bearer $CUST_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"tableId\":\"$TABLE_ID\",\"items\":[{\"menuItemId\":\"$ITEM_ID\",\"quantity\":2}]}"
+
+  Test 3.3 — Move order through Kanban
+  1. Order appears in PENDING column
+  2. Click Confirm → card moves to CONFIRMED column (purple left border appears)
+  3. Click Prep → card moves to PREPARING column
+  4. Click Ready → card moves to READY column (green border)
+  5. Click Serve → card moves to SERVED (dimmed)
+
+  Test 3.4 — Search filter
+  - Type customer name in search → only matching orders show
+  - Type table number → filters by table
+
+  Test 3.5 — Period toggle
+  - "Today" vs "This Week" changes which orders appear
+
+  Test 3.6 — Refresh button
+  - Click refresh → icon spins, then data refreshes
+
+  ---
+  Phase 4 — Kitchen Display
+
+  Open a second browser window (or incognito) and log in as kitchen@test.com.
+
+  Test 4.1 — Full-screen dark layout
+  - /kitchen — NO sidebar, NO header
+  - Full-screen dark background (#111111)
+  - Header bar: GASTHAUS brand, live clock ticking, date
+
+  Test 4.2 — Order cards
+  - CONFIRMED orders appear with amber border labeled "new"
+  - Click "Start Preparing" → card border turns blue
+  - Wait 15+ minutes (or manually check the overdue logic) → card border turns red + pulsing
+  - Click "Mark Ready" → card border turns green, button shows "Collected ✓" (disabled)
+
+  Test 4.3 — Real-time updates (two windows open)
+  - With /orders open in Window 1 (manager) and /kitchen open in Window 2 (kitchen)
+  - In Window 1, confirm a pending order
+  - Window 2 kitchen display should update without refresh (STOMP WebSocket)
+  - In Window 2, mark an order as READY
+  - Window 1 orders board should update without refresh
+
+  Test 4.4 — Header counts
+  - Active count = CONFIRMED + PREPARING orders
+  - Ready count = READY orders
+
+  ---
+  Phase 5 — Menu Management
+
+  Go to /menu (as MANAGER).
+
+  Test 5.1 — Category sidebar
+  - "All Items" button shows all items
+  - Category buttons show item counts
+  - Clicking a category filters the grid
+
+  Test 5.2 — Add category
+  - Click "Add Category" → input appears
+  - Type name, press Enter → category created, appears in sidebar
+  - Press Escape → input cancels
+
+  Test 5.3 — Delete category
+  - Hover a category → (×) delete button appears
+  - Click × → category deleted (if empty; test with items should show error or cascade)
+
+  Test 5.4 — Menu item grid
+  - 3-column grid with item cards
+  - Available items: full color
+  - Unavailable items: opacity-60 + grayscale image
+
+  Test 5.5 — Availability toggle
+  - Click toggle on a card → PATCH /menu/items/:id/toggle
+  - Card immediately reflects new state (React Query invalidation)
+
+  Test 5.6 — Edit item
+  - Click a card → right panel opens with pre-filled form
+  - Amber ring appears on selected card
+  - Change name/price → Save → item updates in grid
+  - Click "Discard" → panel closes, no changes
+
+  Test 5.7 — Delete item
+  - In edit panel → click "Remove from Menu" → confirm dialog appears
+  - Confirm → item disappears from grid
+
+  Test 5.8 — Add item with image upload
+  - Click "Add Item" button → panel opens in create mode
+  - Fill in name, price, select category
+  - Upload an image (JPG/PNG) → preview shows
+  - Save → item appears in grid with image (Cloudinary upload via backend)
+  ▎ Note: requires Cloudinary credentials in backend env — if not set, test without image first
+
+  ---
+  Phase 6 — Tables Floor Plan
+
+  Go to /tables (as MANAGER or WAITER).
+
+  Test 6.1 — Layout
+  - Left panel: stats bar (Total, Occupied, Available) + floor plan dot-grid
+  - Right panel: detail panel (shows placeholder text when nothing selected)
+
+  Test 6.2 — Add table
+  - Click "Add Table" or the add button → input form appears above floor plan
+  - Enter table number (e.g. 6) → press Enter → new tile appears on floor plan
+  - Press Escape → cancels
+
+  Test 6.3 — Table tiles
+  - Available tables: dashed border, green dot
+  - Occupied tables: solid border, customer + order info, red bottom bar
+  - Click any tile → detail panel populates on right
+
+  Test 6.4 — Detail panel
+  - Shows table number prominently
+  - Available table: shows "Available" badge + "Mark as Occupied" button
+  - Occupied table: shows customer name, seated duration (counting up live), order amount, status pill
+
+  Test 6.5 — Toggle occupancy
+  - Click "Mark as Occupied" / "Mark as Available" → PATCH /tables/:id/toggle
+  - Tile appearance updates immediately
+
+  Test 6.6 — Delete table
+  - Select a table → "Delete Table" button → confirm dialog
+  - Confirm → table removed from floor plan
+
+  ---
+  Phase 7 — Reviews
+
+  First, add reviews via API (reviews require CUSTOMER role):
+  ORDER_ID=$(curl -s -H "Authorization: Bearer $CUST_TOKEN" http://localhost:8080/api/orders/my | python3 -c "import sys,json; orders=json.load(sys.stdin); print(orders[0]['id'])")
+
+  curl -X POST http://localhost:8080/api/reviews \
+    -H "Authorization: Bearer $CUST_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"menuItemId\":\"$ITEM_ID\",\"orderId\":\"$ORDER_ID\",\"rating\":4,\"comment\":\"Great burger!\"}"
+
+  # Add a negative review too
+  curl -X POST http://localhost:8080/api/reviews \
+    -H "Authorization: Bearer $CUST_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"menuItemId\":\"$ITEM_ID\",\"orderId\":\"$ORDER_ID\",\"rating\":2,\"comment\":\"Too salty\"}"
+
+  Go to /reviews (as MANAGER).
+
+  Test 7.1 — Review cards
+  - Each card: customer initials avatar (deterministic color), item name badge, star row, comment, time ago
+  - Low-rated cards (≤2★): red left border accent
+
+  Test 7.2 — Stats sidebar
+  - Average rating shown with one decimal
+  - Star distribution bars (5★ to 1★) with widths proportional to count
+  - Sentiment pills: Positive / Neutral / Negative counts
+  - If negative reviews exist: "Quick Insight" box appears
+
+  Test 7.3 — Filters
+  - Item dropdown → filters by menu item
+  - Star dropdown → filter by rating (e.g. show only 2★)
+  - Date range → Last 7 Days / Last 30 Days / All Time
+  - Sort → Latest First / Oldest First
+
+  ---
+  Phase 8 — Insights (AI)
+
+  Go to /insights (as MANAGER).
+
+  Test 8.1 — Period toggle
+  - Today / This Week / This Month → stat cards and charts update
+
+  Test 8.2 — Charts
+  - Hourly Orders: bar chart (9AM–9PM), bars where orders exist
+  - Revenue This Week: area chart with gradient fill for last 7 days
+  - Top Items: horizontal CSS bars showing top items by order count
+
+  Test 8.3 — Key Metrics cards
+  - Avg Order Value: computed from filtered orders
+  - Total Revenue: sum of filtered order amounts (Rs.)
+  - Customer Satisfaction: avg rating / 5
+  - Kitchen Efficiency: 100% − cancelled%
+
+  Test 8.4 — AI Insights (requires FastAPI running)
+  - Click "Generate Insights" button
+  - Should call POST /api/ai/insights
+  - Insight text appears in amber-bordered card
+  - Test error state: stop FastAPI (Ctrl+C in terminal 3), click Generate → inline error shows
+
+  ---
+  Phase 9 — Real-Time WebSocket Stress Test
+
+  Open 3 browser windows simultaneously:
+  1. Window A: /dashboard (MANAGER)
+  2. Window B: /orders (MANAGER)
+  3. Window C: /kitchen (KITCHEN user)
+
+  Test 9.1 — New order propagation
+  curl -X POST http://localhost:8080/api/orders \
+    -H "Authorization: Bearer $CUST_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"tableId\":\"$TABLE_ID\",\"items\":[{\"menuItemId\":\"$ITEM_ID\",\"quantity\":1}]}"
+  - All 3 windows should update within ~1 second (no refresh needed)
+
+  Test 9.2 — Status change propagation
+  - In Window B, click "Confirm" on the new order
+  - Window A dashboard live orders panel updates
+  - Window C kitchen display shows the confirmed order
+
+  Test 9.3 — WebSocket reconnect
+  - Temporarily stop Spring Boot (Ctrl+C), wait 10 seconds, restart it
+  - The frontend should auto-reconnect (STOMP reconnectDelay: 5000) and show live data again
+
+  ---
+  Phase 10 — Role-Based Access
+
+  Test 10.1 — WAITER restrictions
+  - Login as waiter@test.com
+  - Can access: /dashboard, /orders, /tables
+  - Menu page: can view but CANNOT add/edit/delete items or categories (buttons should be hidden or API returns 403)
+
+  Test 10.2 — API-level auth (Postman/curl)
+  # Try to create menu item as WAITER — should get 403
+  WAITER_TOKEN=$(curl -s -X POST http://localhost:8080/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d '{"email":"waiter@test.com","password":"pass123"}' | python3 -c "import sys,json; print(json.load(sys.stdin)['token'])")
+
+  curl -X POST http://localhost:8080/api/menu/categories \
+    -H "Authorization: Bearer $WAITER_TOKEN" \
+    -H "Content-Type: application/json" \
+    -d '{"name":"Test"}'
+  # Expected: 403 Forbidden
+
+  # Try to access reviews as WAITER — should get 403
+  curl -H "Authorization: Bearer $WAITER_TOKEN" http://localhost:8080/api/reviews
+  # Expected: 403 Forbidden
+
+  # Try to place order as MANAGER — should get 403
+  curl -X POST http://localhost:8080/api/orders \
+    -H "Authorization: Bearer $TOKEN" \
+    -H "Content-Type: application/json" \
+    -d "{\"tableId\":\"$TABLE_ID\",\"items\":[{\"menuItemId\":\"$ITEM_ID\",\"quantity\":1}]}"
+  # Expected: 403 Forbidden (only CUSTOMER can place orders)
+
+  ---
+  Phase 11 — Quick Smoke Checks (TypeScript Build)
+
+  cd ~/Gasthaus/gasthaus-dashboard
+  npx tsc --noEmit
+  Should produce zero errors.
+
+  npm run build
+  Should complete successfully (Next.js production build).
+
+  ---
+  Summary Checklist
+
+  ┌───────────┬───────────────────────────────────────────────────────────┐
+  │   Area    │                           Tests                           │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Auth      │ Redirect, validation, login by role, logout               │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Dashboard │ Stat cards, live orders, table map, real-time             │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Orders    │ Kanban columns, status transitions, search, period filter │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Kitchen   │ Full-screen, card states, elapsed timer, real-time        │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Menu      │ Category CRUD, item CRUD, toggle, image upload            │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Tables    │ Floor plan, add/delete table, detail panel, toggle        │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Reviews   │ Cards, filters, stats sidebar, sentiment insight          │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Insights  │ Charts, AI generation, period toggle, error state         │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ WebSocket │ Multi-window propagation, reconnect                       │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Auth/RBAC │ Role redirects, API 403 enforcement                       │
+  ├───────────┼───────────────────────────────────────────────────────────┤
+  │ Build     │ tsc --noEmit, npm run build                               │
+  └───────────┴───────────────────────────────────────────────────────────┘
+
+  Work through these in order — each phase builds on the previous (seeded data from Phase 2 is used in all subsequent phases). Once you've validated everything here, the system is ready for
+  the Flutter customer app.

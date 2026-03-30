@@ -167,3 +167,17 @@ Phase 4: Menu endpoints
 Phase 5: Orders + WebSocket
 Phase 6: Reviews + Tables
 Phase 7: AI proxy (calls FastAPI same as NestJS version)
+
+---
+
+## Code Comments Policy (Flutter App)
+
+The user is studying Flutter and Dart through this project.
+**Always add inline comments to all Flutter/Dart code** explaining:
+- What the code does
+- Why this approach was chosen (e.g. why `ChangeNotifier` vs alternatives)
+- Flutter/Dart-specific concepts that may be unfamiliar (e.g. `BuildContext`, `initState`, `didChangeDependencies`)
+- Comparisons to equivalent patterns in other languages/frameworks where helpful
+
+Comments should be educational, not just descriptive. Assume the reader knows
+programming but is new to Flutter. This applies to every file in `gasthaus_app/`.
