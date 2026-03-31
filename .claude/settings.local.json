@@ -18,7 +18,8 @@
       "Bash(flutter --version)",
       "Bash(flutter doctor:*)",
       "Bash(flutter emulators:*)",
-      "Bash(emulator -list-avds)"
+      "Bash(emulator -list-avds)",
+      "mcp__ide__getDiagnostics"
     ]
   }
 }

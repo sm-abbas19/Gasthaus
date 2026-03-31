@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../cart/cart_provider.dart';
@@ -9,7 +10,8 @@ import 'item_detail_sheet.dart';
 import 'menu_provider.dart';
 import 'widgets/menu_item_card.dart';
 
-// MenuScreen is a StatefulWidget because it owns the search TextEditingController.
+// MenuScreen is a StatefulWidget because it owns the search TextEditingController
+// and reads the ?table= query param from the URL on first build.
 // Everything else (data, filters) lives in MenuProvider.
 class MenuScreen extends StatefulWidget {
   const MenuScreen({super.key});
@@ -20,6 +22,29 @@ class MenuScreen extends StatefulWidget {
 
 class _MenuScreenState extends State<MenuScreen> {
   final _searchController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Read the ?table= query param injected by a QR code scan.
+    // A QR code on each restaurant table encodes the URL:
+    //   gasthaus://menu?table=4
+    // GoRouter parses this and makes it available via GoRouterState.
+    //
+    // We use addPostFrameCallback because reading GoRouterState and calling
+    // a provider method during initState (before the first build) can cause
+    // a setState-during-build error in some Flutter versions.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final tableParam =
+          GoRouterState.of(context).uri.queryParameters['table'];
+      if (tableParam != null) {
+        final tableNumber = int.tryParse(tableParam);
+        if (tableNumber != null) {
+          context.read<CartProvider>().setTableNumber(tableNumber);
+        }
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -276,13 +301,22 @@ class _MenuScreenState extends State<MenuScreen> {
   Widget _buildMenuGrid() {
     return Consumer<MenuProvider>(
       builder: (context, menu, _) {
-        // Show a loading spinner while the first fetch is in flight.
+        // Show shimmer skeleton grid while the first fetch is in flight.
+        // Shimmer gives users a visual hint of the content shape before
+        // data arrives — much better UX than a spinner in the middle of a grid.
         if (menu.isLoading) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(top: 60),
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
+          return SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            sliver: SliverGrid(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 0.82,
+              ),
+              delegate: SliverChildBuilderDelegate(
+                (context, _) => const _MenuItemShimmer(),
+                childCount: 6, // show 6 ghost cards
               ),
             ),
           );
@@ -367,6 +401,68 @@ class _MenuScreenState extends State<MenuScreen> {
           ),
         );
       },
+    );
+  }
+}
+
+// ─── Menu Item Shimmer ────────────────────────────────────────────────────────
+// Mimics the shape of a real MenuItemCard so the layout doesn't jump when
+// data loads. Shimmer.fromColors animates a highlight sweep across grey boxes.
+
+class _MenuItemShimmer extends StatelessWidget {
+  const _MenuItemShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    // Shimmer.fromColors wraps its child in a sweeping highlight animation.
+    // baseColor is the "off" state, highlightColor is the shimmer peak.
+    // The child defines the shape — use solid containers to show grey blocks.
+    return Shimmer.fromColors(
+      baseColor: AppColors.divider,
+      highlightColor: AppColors.surface,
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        clipBehavior: Clip.hardEdge,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image placeholder — 4:3
+            AspectRatio(
+              aspectRatio: 4 / 3,
+              child: Container(color: AppColors.divider),
+            ),
+            // Text area placeholder
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    height: 12,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    height: 12,
+                    width: 60,
+                    decoration: BoxDecoration(
+                      color: AppColors.divider,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

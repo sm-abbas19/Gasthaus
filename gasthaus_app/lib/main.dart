@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
+import 'core/services/api_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'features/auth/auth_provider.dart';
@@ -21,6 +22,11 @@ void main() async {
 
   final authProvider = AuthProvider();
   await authProvider.restoreSession();
+
+  // Register the 401 callback so any expired/invalid JWT triggers logout.
+  // The Dio interceptor calls this without needing a BuildContext.
+  // GoRouter's redirect logic then sends the user back to /login automatically.
+  ApiService.on401 = () => authProvider.logout();
 
   runApp(GasthausApp(authProvider: authProvider));
 }

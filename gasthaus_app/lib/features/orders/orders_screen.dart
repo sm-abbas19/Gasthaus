@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../core/models/order.dart';
 import '../../core/theme/app_colors.dart';
@@ -107,8 +108,14 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   Widget _buildBody(OrdersProvider provider) {
     if (provider.isLoading) {
-      return const Center(
-          child: CircularProgressIndicator(color: AppColors.primary));
+      // Shimmer skeleton list — shows 4 ghost order cards while loading.
+      // The shapes mirror a real _OrderCard so the layout is stable.
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+        itemCount: 4,
+        separatorBuilder: (context, index) => const SizedBox(height: 12),
+        itemBuilder: (context, index) => const _OrderCardShimmer(),
+      );
     }
 
     if (provider.error != null) {
@@ -208,6 +215,92 @@ class _OrdersScreenState extends State<OrdersScreen> {
         menuItemName: order.items.first.menuItemName,
         menuItemImage: order.items.first.menuItemImage,
         orderId: order.id,
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _OrderCardShimmer — ghost card shown while orders are loading
+// ---------------------------------------------------------------------------
+
+class _OrderCardShimmer extends StatelessWidget {
+  const _OrderCardShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: AppColors.divider,
+      highlightColor: AppColors.surface,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: AppColors.surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Order number + status badge row
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _ShimmerBox(width: 100, height: 14),
+                _ShimmerBox(width: 80, height: 22, radius: 99),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _ShimmerBox(width: 140, height: 11),
+            const SizedBox(height: 14),
+            // Thumbnail stack
+            Row(
+              children: [
+                _ShimmerBox(width: 32, height: 32, radius: 8),
+                const SizedBox(width: 4),
+                _ShimmerBox(width: 32, height: 32, radius: 8),
+                const SizedBox(width: 4),
+                _ShimmerBox(width: 32, height: 32, radius: 8),
+              ],
+            ),
+            const SizedBox(height: 14),
+            const Divider(height: 1, color: AppColors.divider),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                _ShimmerBox(width: 40, height: 12),
+                _ShimmerBox(width: 70, height: 14),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Reusable grey box for shimmer layouts. Keeps the shimmer widget definitions
+// concise — one line per placeholder instead of a full Container each time.
+class _ShimmerBox extends StatelessWidget {
+  final double width;
+  final double height;
+  final double radius;
+
+  const _ShimmerBox({
+    required this.width,
+    required this.height,
+    this.radius = 4,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: AppColors.divider,
+        borderRadius: BorderRadius.circular(radius),
       ),
     );
   }

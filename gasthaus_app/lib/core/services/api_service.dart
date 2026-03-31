@@ -18,6 +18,16 @@ class ApiService {
   // Use 10.0.2.2 for Android emulator to reach host machine's localhost
   static const String _baseUrl = 'http://10.0.2.2:8080/api';
 
+  // on401 is a callback registered by the app at startup (in main.dart).
+  // When a 401 response is received the interceptor calls this, which triggers
+  // logout + redirect without needing a BuildContext inside the interceptor.
+  //
+  // This is the "callback/delegate" pattern — the service doesn't know about
+  // Flutter navigation or providers; it just calls a function it was given.
+  // Compare to NestJS where you'd use an event emitter or a guard that throws
+  // an UnauthorizedException and a global exception filter catches it.
+  static void Function()? on401;
+
   late final Dio _dio = Dio(BaseOptions(
     baseUrl: _baseUrl,
     connectTimeout: const Duration(seconds: 15),
@@ -51,6 +61,13 @@ class _ErrorInterceptor extends Interceptor {
     String message;
 
     if (response != null) {
+      // Fire the 401 callback before building the rejection.
+      // This lets the app log the user out and redirect to /login
+      // without the interceptor needing access to a BuildContext.
+      if (response.statusCode == 401) {
+        ApiService.on401?.call();
+      }
+
       final data = response.data;
       if (data is Map && data['message'] != null) {
         final raw = data['message'];

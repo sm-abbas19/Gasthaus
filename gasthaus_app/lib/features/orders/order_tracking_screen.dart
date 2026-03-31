@@ -1,11 +1,14 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../core/models/order.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/socket_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
@@ -71,8 +74,38 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
-    // Fetch immediately on first load, then poll every 10 s.
+    // Fetch immediately for the initial data render.
     _fetchOrder();
+
+    // Subscribe to real-time status updates via STOMP WebSocket.
+    // When the kitchen updates the order status, the Spring Boot server
+    // publishes to /topic/orders/{orderId} and this callback fires instantly —
+    // no polling delay, no extra HTTP round-trip.
+    SocketService.instance.subscribeToOrder(widget.orderId, (newStatus) {
+      if (!mounted) return;
+      if (_order != null) {
+        // Reconstruct the order with the updated status.
+        // Dart has no record spread, so we pass all fields explicitly.
+        setState(() {
+          _order = Order(
+            id: _order!.id,
+            orderNumber: _order!.orderNumber,
+            status: newStatus,
+            tableNumber: _order!.tableNumber,
+            items: _order!.items,
+            totalAmount: _order!.totalAmount,
+            notes: _order!.notes,
+            createdAt: _order!.createdAt,
+          );
+        });
+        // Cancel the fallback poll once the socket is delivering updates.
+        _pollTimer?.cancel();
+        _pollTimer = null;
+      }
+    });
+
+    // Polling fallback — fires every 10 s when the socket is not connected.
+    // If SocketService delivers an update it cancels the timer above.
     _pollTimer = Timer.periodic(
       const Duration(seconds: 10),
       (_) => _fetchOrder(),
@@ -86,6 +119,9 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
     // "setState called after dispose" errors in async callbacks.
     _pollTimer?.cancel();
     _pulseController.dispose();
+    // Unsubscribe from the STOMP topic so we stop receiving messages
+    // for this order after the screen is removed from the tree.
+    SocketService.instance.unsubscribeFromOrder(widget.orderId);
     super.dispose();
   }
 
@@ -423,13 +459,18 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: item.menuItemImage != null
-                ? Image.network(
-                    item.menuItemImage!,
+                ? CachedNetworkImage(
+                    imageUrl: item.menuItemImage!,
                     width: 48,
                     height: 48,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) =>
-                        _imgFallback(),
+                    placeholder: (context, url) => Shimmer.fromColors(
+                      baseColor: AppColors.divider,
+                      highlightColor: AppColors.surface,
+                      child: Container(
+                          width: 48, height: 48, color: AppColors.divider),
+                    ),
+                    errorWidget: (context, url, error) => _imgFallback(),
                   )
                 : _imgFallback(),
           ),

@@ -1,7 +1,9 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+import 'package:shimmer/shimmer.dart';
 
 import '../../core/models/cart_item.dart';
 import '../../core/services/api_service.dart';
@@ -497,19 +499,26 @@ class _CartItemCard extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    // CachedNetworkImage would be ideal here for caching, but since cart items
-    // are already loaded in MenuProvider we just use Image.network with
-    // an error fallback. Phase 8 will upgrade to CachedNetworkImage + shimmer.
     final url = cartItem.menuItem.imageUrl;
     if (url != null && url.isNotEmpty) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(8),
-        child: Image.network(
-          url,
+        child: CachedNetworkImage(
+          imageUrl: url,
           width: 64,
           height: 64,
           fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) => _fallback(),
+          // Shimmer placeholder while the image downloads from the cache or network
+          placeholder: (context, url) => Shimmer.fromColors(
+            baseColor: AppColors.divider,
+            highlightColor: AppColors.surface,
+            child: Container(
+              width: 64,
+              height: 64,
+              color: AppColors.divider,
+            ),
+          ),
+          errorWidget: (context, url, error) => _fallback(),
         ),
       );
     }

@@ -17,6 +17,7 @@ class MainShell extends StatelessWidget {
     final cartCount = context.watch<CartProvider>().itemCount;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: child,
       bottomNavigationBar: _BottomNav(
         currentLocation: location,

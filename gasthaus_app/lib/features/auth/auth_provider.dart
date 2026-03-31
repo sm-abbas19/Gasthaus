@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../core/models/user.dart';
 import '../../core/services/api_service.dart';
 import '../../core/services/auth_storage.dart';
+import '../../core/services/socket_service.dart';
 
 class AuthProvider extends ChangeNotifier {
   User? _currentUser;
@@ -39,6 +42,9 @@ class AuthProvider extends ChangeNotifier {
 
       _currentUser = user;
       _error = null;
+      // Connect WebSocket after successful login so real-time order updates
+      // are available immediately without waiting for the first order screen visit.
+      unawaited(SocketService.instance.connect());
     } on Exception catch (e) {
       _error = _extractMessage(e);
       rethrow;
@@ -76,6 +82,9 @@ class AuthProvider extends ChangeNotifier {
 
   Future<void> logout() async {
     await AuthStorage.instance.clear();
+    // Disconnect WebSocket on logout so the server session is released
+    // and we don't receive events for a different user on re-login.
+    SocketService.instance.disconnect();
     _currentUser = null;
     notifyListeners();
   }
