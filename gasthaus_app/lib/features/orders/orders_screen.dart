@@ -64,9 +64,8 @@ class _OrdersScreenState extends State<OrdersScreen> {
   // the dark top bar of the shell. Since this screen lives inside MainShell
   // which provides the bottom nav, we just build the header inline here.
   Widget _buildHeader() {
-    return Container(
-      color: AppColors.surface,
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
       child: Text('My Orders', style: AppTextStyles.screenTitle),
     );
   }

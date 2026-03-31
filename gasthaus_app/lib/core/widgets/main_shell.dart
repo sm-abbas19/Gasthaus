@@ -66,8 +66,8 @@ class _BottomNav extends StatelessWidget {
               onTap: () => context.go('/orders'),
             ),
             _NavItem(
-              icon: Icons.auto_awesome_outlined,
-              label: 'AI WAITER',
+              icon: Icons.room_service_outlined,
+              label: 'GUSTAV',
               active: _selectedIndex == 2,
               onTap: () => context.go('/ai-waiter'),
             ),

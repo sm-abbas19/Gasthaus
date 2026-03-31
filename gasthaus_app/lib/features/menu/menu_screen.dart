@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
+import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../core/theme/app_colors.dart';
 import '../cart/cart_provider.dart';
 import 'item_detail_sheet.dart';
@@ -118,9 +120,15 @@ class _MenuScreenState extends State<MenuScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Row(
               children: [
-                // Wordmark: amber icon + "GASTHAUS"
-                const Icon(Icons.restaurant,
-                    color: AppColors.primary, size: 22),
+                SvgPicture.asset(
+                  'assets/icons/utensils_crossed.svg',
+                  width: 22,
+                  height: 22,
+                  colorFilter: const ColorFilter.mode(
+                    AppColors.primary,
+                    BlendMode.srcIn,
+                  ),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   'GASTHAUS',

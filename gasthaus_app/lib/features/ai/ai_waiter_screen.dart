@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
+import '../menu/menu_provider.dart';
 import 'ai_chat_provider.dart';
 
 // Suggestion chips shown in the welcome banner.
@@ -79,9 +81,27 @@ class _AiWaiterScreenState extends State<AiWaiterScreen> {
     _textController.clear();
     _scrollToBottom();
 
+    // Build the full menu items list — including unavailable items — so the AI
+    // knows the complete catalogue and can accurately report each item's status.
+    // Omitting unavailable items causes the AI to hallucinate their availability
+    // from session history. Sending all items with an explicit `available` flag
+    // lets the AI say "X is currently unavailable" correctly.
+    final menuItems = context
+        .read<MenuProvider>()
+        .allItems
+        .map((item) => {
+              'id': item.id,
+              'name': item.name,
+              'description': item.description,
+              'price': item.price,
+              'categoryName': item.categoryName,
+              'isAvailable': item.available,
+            })
+        .toList();
+
     // context.read() is used here (not watch()) because we're in an async callback,
     // not in the build() method. context.watch() must only be called during build.
-    await context.read<AiChatProvider>().sendMessage(text);
+    await context.read<AiChatProvider>().sendMessage(text, menuItems: menuItems);
     _scrollToBottom(); // scroll again after AI response arrives
   }
 
@@ -127,19 +147,16 @@ class _AiWaiterScreenState extends State<AiWaiterScreen> {
           child: Row(
             children: [
               // Sparkle icon — filled variant via fontVariations
-              const Icon(Icons.auto_awesome, color: AppColors.primary, size: 22),
+              const Icon(Icons.room_service, color: AppColors.primary, size: 22),
               const SizedBox(width: 10),
-              Text('AI Waiter', style: AppTextStyles.topBarTitleLight),
+              Text('Gustav', style: AppTextStyles.topBarTitleLight),
               const Spacer(),
-              // Clear/refresh button — only active when there are messages
+              // Clear button is always active — the server-side MongoDB session
+              // can persist across app restarts even when local messages are gone,
+              // so the user must be able to clear it at any time.
               IconButton(
-                icon: Icon(
-                  Icons.refresh,
-                  color: provider.isEmpty
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : Colors.white70,
-                ),
-                onPressed: provider.isEmpty ? null : () => provider.clearSession(),
+                icon: const Icon(Icons.refresh, color: Colors.white70),
+                onPressed: () => provider.clearSession(),
                 tooltip: 'New conversation',
               ),
             ],
@@ -167,16 +184,16 @@ class _AiWaiterScreenState extends State<AiWaiterScreen> {
             ),
             child: Column(
               children: [
-                const Icon(Icons.auto_awesome,
+                const Icon(Icons.room_service,
                     size: 48, color: AppColors.primary),
                 const SizedBox(height: 14),
                 Text(
-                  'Ask me anything!',
+                  'Guten Tag! I\'m Gustav.',
                   style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'I can help you choose dishes based on your mood, dietary needs, or cravings.',
+                  'Your personal Gasthaus waiter. Tell me what you\'re in the mood for and I\'ll find the perfect dish for you.',
                   style: AppTextStyles.bodySecondary,
                   textAlign: TextAlign.center,
                 ),
@@ -359,14 +376,14 @@ class _AiBubble extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // "AI Waiter" label above the bubble — matches the stitch design
+          // Gustav label above each AI bubble
           Row(
             children: [
-              const Icon(Icons.auto_awesome,
+              const Icon(Icons.room_service,
                   size: 12, color: AppColors.textMuted),
               const SizedBox(width: 4),
               Text(
-                'AI WAITER',
+                'GUSTAV',
                 style: AppTextStyles.caption.copyWith(
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.8,
@@ -391,9 +408,25 @@ class _AiBubble extends StatelessWidget {
                 ),
                 border: Border.all(color: AppColors.border),
               ),
-              child: Text(
-                message.text,
-                style: AppTextStyles.body.copyWith(fontSize: 14, height: 1.6),
+              // MarkdownBody renders ** bold **, * italic *, line breaks etc.
+              // The AI (Gemini) returns markdown-formatted text, so we must
+              // parse it here — otherwise **bold** shows as raw asterisks.
+              // shrinkWrap: true makes MarkdownBody size to its content
+              // instead of trying to fill the parent, which is important
+              // inside a ConstrainedBox inside a scrollable list.
+              child: MarkdownBody(
+                data: message.text,
+                styleSheet: MarkdownStyleSheet(
+                  p: AppTextStyles.body.copyWith(fontSize: 14, height: 1.6),
+                  strong: AppTextStyles.body.copyWith(
+                    fontSize: 14,
+                    height: 1.6,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  // Remove default top/bottom padding from paragraphs
+                  // so spacing matches the original Text widget layout.
+                  blockSpacing: 10,
+                ),
               ),
             ),
           ),

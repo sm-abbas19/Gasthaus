@@ -22,7 +22,7 @@ class ChatMessage {
   bool get isUser => role == 'user';
 }
 
-// AiChatProvider manages the full state of the AI Waiter chat.
+// AiChatProvider manages the full state of the Gustav AI chat.
 // It uses the ChangeNotifier pattern: mutate state, then call notifyListeners()
 // to let the UI rebuild. This is equivalent to React's useState + useReducer
 // but simpler — there's one class that owns all related state.
@@ -41,7 +41,17 @@ class AiChatProvider extends ChangeNotifier {
   bool get isTyping => _isTyping;
   bool get isEmpty => _messages.isEmpty;
 
-  Future<void> sendMessage(String text) async {
+  // sendMessage sends a user message to the AI and appends the response.
+  //
+  // menuItems must be the current menu list so the AI has context about
+  // what dishes are available to recommend. The backend's RecommendRequest
+  // DTO has a @NotNull menuItems field — omitting it causes a 400 validation
+  // error. We pass a list of plain maps (id, name, description, price,
+  // categoryName) — only the fields the AI needs for recommendations.
+  Future<void> sendMessage(
+    String text, {
+    List<Map<String, dynamic>> menuItems = const [],
+  }) async {
     final trimmed = text.trim();
     if (trimmed.isEmpty) return;
 
@@ -60,16 +70,17 @@ class AiChatProvider extends ChangeNotifier {
       // POST /ai/recommend — CUSTOMER only.
       // The backend maintains conversation history per session using the JWT,
       // so we only send the latest message, not the full history.
-      // Body: { message: String }
+      // Body: { message: String, menuItems: List }
       final response = await ApiService.instance.dio.post(
         '/ai/recommend',
-        data: {'message': trimmed},
+        data: {'message': trimmed, 'menuItems': menuItems},
       );
 
-      // The backend returns { response: String } or { message: String }.
-      // We try both keys to be defensive.
+      // FastAPI returns { "reply": String, "sessionId": String }.
+      // The Spring Boot backend proxies this unchanged, so we read "reply".
       final data = response.data as Map<String, dynamic>;
-      final aiText = data['response']?.toString() ??
+      final aiText = data['reply']?.toString() ??
+          data['response']?.toString() ??
           data['message']?.toString() ??
           'Sorry, I couldn\'t understand that. Could you try rephrasing?';
 

@@ -75,6 +75,10 @@ class MenuProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // All menu items across every category — used to pass full menu context to
+  // the AI endpoint, which needs the complete list regardless of active filters.
+  List<MenuItem> get allItems => _categories.expand((c) => c.items).toList();
+
   // A computed getter — not stored state, just derived from existing state.
   // In Dart, getters are accessed like properties: provider.filteredItems
   // This is equivalent to a computed property in Swift or a @computed in MobX.

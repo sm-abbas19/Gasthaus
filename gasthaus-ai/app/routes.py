@@ -55,7 +55,8 @@ async def recommend(req: RecommendRequest):
         # System prompt passed as system_instruction — kept separate from user turn
         # This prevents user message from overriding or leaking the system context
         menu_text = format_menu(req.menuItems)
-        system_instruction = f"""You are a friendly AI waiter for Gasthaus restaurant.
+        system_instruction = f"""You are Gustav, the AI waiter for Gasthaus restaurant.
+Your personality is warm, knowledgeable, and subtly German — occasionally use light German phrases like "Wunderbar!" or "Sehr gut!" but keep it natural, not overdone.
 Your job is to help customers choose what to order based on their preferences.
 Always recommend specific items from the menu below and explain why they match.
 Keep responses concise and conversational.

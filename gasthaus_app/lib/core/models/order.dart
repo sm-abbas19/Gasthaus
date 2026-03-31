@@ -68,10 +68,13 @@ class Order {
     );
   }
 
+  // SERVED means the food has been delivered to the table — done from the
+  // customer's perspective. Only in-kitchen statuses count as "active".
   bool get isActive =>
-      ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'SERVED'].contains(status);
+      ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'].contains(status);
 
-  bool get isCompleted => status == 'COMPLETED';
+  // SERVED and COMPLETED both represent a finished order to the customer.
+  bool get isCompleted => status == 'COMPLETED' || status == 'SERVED';
 
   bool get isCancelled => status == 'CANCELLED';
 }

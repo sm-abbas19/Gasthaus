@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/app_colors.dart';
@@ -28,12 +29,18 @@ class GasthausWordmark extends StatelessWidget {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // The restaurant icon in amber — matches the stitch design.
-            // Icons.restaurant is from Flutter's built-in Material icon set.
-            const Icon(
-              Icons.restaurant,
-              color: AppColors.primary, // #D97706 amber
-              size: 28,
+            // Custom SVG matching lucide's UtensilsCrossed used in the
+            // Next.js dashboard — ensures the brand logo is identical across
+            // both apps. SvgPicture.asset loads from assets/icons/.
+            // colorFilter replaces the SVG's stroke color with the amber primary.
+            SvgPicture.asset(
+              'assets/icons/utensils_crossed.svg',
+              width: 28,
+              height: 28,
+              colorFilter: const ColorFilter.mode(
+                AppColors.primary,
+                BlendMode.srcIn,
+              ),
             ),
             const SizedBox(width: 8),
 
