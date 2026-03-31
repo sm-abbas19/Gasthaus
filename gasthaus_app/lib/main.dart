@@ -7,6 +7,8 @@ import 'core/router/app_router.dart';
 import 'features/auth/auth_provider.dart';
 import 'features/cart/cart_provider.dart';
 import 'features/menu/menu_provider.dart';
+import 'features/orders/orders_provider.dart';
+import 'features/ai/ai_chat_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +37,13 @@ class GasthausApp extends StatelessWidget {
         ChangeNotifierProvider.value(value: authProvider),
         ChangeNotifierProvider(create: (_) => CartProvider()),
         ChangeNotifierProvider(create: (_) => MenuProvider()),
+        // OrdersProvider is registered globally so it can be accessed
+        // from the OrdersScreen tab inside the shell without re-fetching
+        // every time the tab is switched.
+        ChangeNotifierProvider(create: (_) => OrdersProvider()),
+        // AiChatProvider is global so the chat session persists when the
+        // user switches tabs and comes back — messages stay visible.
+        ChangeNotifierProvider(create: (_) => AiChatProvider()),
       ],
       child: Builder(
         builder: (context) {
