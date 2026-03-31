@@ -68,10 +68,14 @@ class _MenuScreenState extends State<MenuScreen> {
     final cartCount = context.watch<CartProvider>().itemCount;
     final tableNumber = context.watch<CartProvider>().tableNumber;
 
-    // Column divides the screen into two vertical sections:
-    // 1. Dark top bar (fixed height)
-    // 2. Scrollable content (fills remaining space)
-    return Column(
+    // ColoredBox paints AppColors.background behind the entire screen before
+    // any children paint. This prevents a white flash during navigation
+    // transitions — the Column itself has no background, so without this
+    // wrapper Flutter would show the theme's colorScheme.surface (white) for
+    // one frame while the route animates in.
+    return ColoredBox(
+      color: AppColors.background,
+      child: Column(
       children: [
         _buildTopBar(cartCount),
         Expanded(
@@ -95,6 +99,7 @@ class _MenuScreenState extends State<MenuScreen> {
           ),
         ),
       ],
+      ),
     );
   }
 

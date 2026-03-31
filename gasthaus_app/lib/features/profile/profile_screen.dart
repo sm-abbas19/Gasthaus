@@ -310,18 +310,22 @@ class ProfileScreen extends StatelessWidget {
   void _confirmLogout(BuildContext context, AuthProvider auth) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      // dialogContext is the BuildContext scoped to the dialog itself.
+      // We must use it (not the outer context) to pop the dialog, because
+      // in a GoRouter ShellRoute the outer Navigator.of(context) resolves to
+      // the root navigator and would pop the entire profile route instead.
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Log Out'),
         content:
             const Text('Are you sure you want to log out of your account?'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               auth.logout();
               // GoRouter's redirect logic will detect isLoggedIn == false
               // and navigate to /login automatically.
@@ -341,7 +345,7 @@ class ProfileScreen extends StatelessWidget {
     final controller = TextEditingController(text: user.name);
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Full Name'),
         content: TextField(
           controller: controller,
@@ -352,12 +356,12 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               // TODO: wire to PATCH /auth/me when the backend adds the endpoint
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -377,12 +381,12 @@ class ProfileScreen extends StatelessWidget {
       BuildContext context, {required String title, required String value}) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: Text(title),
         content: Text(value, style: AppTextStyles.body),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Close'),
           ),
         ],
@@ -397,7 +401,7 @@ class ProfileScreen extends StatelessWidget {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Change Password'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -425,12 +429,12 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () {
-              Navigator.of(context).pop();
+              Navigator.of(dialogContext).pop();
               // TODO: wire to backend password change endpoint
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -449,7 +453,7 @@ class ProfileScreen extends StatelessWidget {
   void _showAboutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('About Gasthaus'),
         content: const Text(
           'Gasthaus is an AI-powered restaurant management system '
@@ -458,7 +462,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Close'),
           ),
         ],
@@ -469,7 +473,7 @@ class ProfileScreen extends StatelessWidget {
   void _showTermsDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('Terms of Service'),
         content: const SingleChildScrollView(
           child: Text(
@@ -483,7 +487,7 @@ class ProfileScreen extends StatelessWidget {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('Close'),
           ),
         ],
