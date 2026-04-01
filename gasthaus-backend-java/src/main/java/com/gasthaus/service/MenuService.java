@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,6 +53,24 @@ public class MenuService {
 
     private final MenuCategoryRepository categoryRepository;
     private final MenuItemRepository itemRepository;
+
+    /**
+     * SimpMessagingTemplate broadcasts STOMP messages to connected clients.
+     * NestJS equivalent: this.server.emit('menu:updated', {}) in the Gateway.
+     * We send a simple { "event": "updated" } payload to /topic/menu.
+     * Flutter subscribes to this topic and calls loadMenu() on receipt.
+     */
+    private final SimpMessagingTemplate messagingTemplate;
+
+    /**
+     * Notifies all connected Flutter clients that the menu has changed.
+     * Called after every mutation (create/update/delete/toggle).
+     * The payload is minimal — the client just needs a signal to re-fetch,
+     * not the full menu data (that would be a large WebSocket message).
+     */
+    private void broadcastMenuUpdate() {
+        messagingTemplate.convertAndSend("/topic/menu", Map.of("event", "updated"));
+    }
 
     // ─── Cloudinary setup ─────────────────────────────────────────
 
@@ -136,7 +155,9 @@ public class MenuService {
                 .name(dto.getName())
                 .icon(dto.getIcon())
                 .build();
-        return categoryRepository.save(category);
+        MenuCategory saved = categoryRepository.save(category);
+        broadcastMenuUpdate();
+        return saved;
     }
 
     /**
@@ -146,8 +167,9 @@ public class MenuService {
      */
     @CacheEvict(value = "menu:categories", allEntries = true)
     public void deleteCategory(UUID id) {
-        findCategoryOrFail(id); // throws 404 if not found
+        findCategoryOrFail(id);
         categoryRepository.deleteById(id);
+        broadcastMenuUpdate();
     }
 
     // ─── Items ────────────────────────────────────────────────────
@@ -214,7 +236,9 @@ public class MenuService {
                 .isAvailable(dto.getIsAvailable() != null ? dto.getIsAvailable() : true)
                 .build();
 
-        return itemRepository.save(item);
+        MenuItem saved = itemRepository.save(item);
+        broadcastMenuUpdate();
+        return saved;
     }
 
     /**
@@ -243,7 +267,9 @@ public class MenuService {
             item.setImageUrl(uploadToCloudinary(image));
         }
 
-        return itemRepository.save(item);
+        MenuItem saved = itemRepository.save(item);
+        broadcastMenuUpdate();
+        return saved;
     }
 
     /**
@@ -255,6 +281,7 @@ public class MenuService {
     public void deleteItem(UUID id) {
         findItemOrFail(id);
         itemRepository.deleteById(id);
+        broadcastMenuUpdate();
     }
 
     /**
@@ -266,7 +293,9 @@ public class MenuService {
     public MenuItem toggleAvailability(UUID id) {
         MenuItem item = findItemOrFail(id);
         item.setIsAvailable(!item.getIsAvailable());
-        return itemRepository.save(item);
+        MenuItem saved = itemRepository.save(item);
+        broadcastMenuUpdate();
+        return saved;
     }
 
     // ─── Helpers ──────────────────────────────────────────────────

@@ -39,6 +39,46 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
+  // If no table number is set (customer didn't scan a QR code), show a dialog
+  // asking them to enter it manually. Returns true if a number was entered,
+  // false if the user cancelled.
+  Future<bool> _askForTableNumber() async {
+    final controller = TextEditingController();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Which table are you at?'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          autofocus: true,
+          decoration: const InputDecoration(
+            hintText: 'Enter table number',
+            prefixIcon: Icon(Icons.restaurant),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              final n = int.tryParse(controller.text.trim());
+              if (n != null && n > 0) {
+                context.read<CartProvider>().setTableNumber(n);
+                Navigator.of(dialogContext).pop(true);
+              }
+            },
+            child: const Text('Confirm'),
+          ),
+        ],
+      ),
+    );
+    return confirmed == true;
+  }
+
   Future<void> _placeOrder() async {
     // context.read<T>() reads a provider once without subscribing.
     // We use read() (not watch()) here because we're inside an async callback,
@@ -46,13 +86,27 @@ class _CartScreenState extends State<CartScreen> {
     final cart = context.read<CartProvider>();
     if (cart.items.isEmpty) return;
 
+    // If no table number is set, ask before proceeding.
+    if (cart.tableNumber == null) {
+      final provided = await _askForTableNumber();
+      if (!provided) return; // user cancelled
+    }
+
     setState(() => _isPlacingOrder = true);
 
     try {
-      // Build the POST /orders body.
-      // Backend expects: { tableNumber, notes?, items: [{ menuItemId, quantity }] }
+      // Step 1: Resolve tableNumber → tableId (UUID).
+      // The backend's CreateOrderRequest requires a tableId UUID, not a number.
+      // GET /tables/number/:num is public and returns the table object with its id.
+      final tableNum = cart.tableNumber!;
+      final tableRes = await ApiService.instance.dio
+          .get('/tables/number/$tableNum');
+      final tableId = tableRes.data['id']?.toString();
+      if (tableId == null) throw Exception('Table $tableNum not found');
+
+      // Step 2: Build the POST /orders body with the resolved UUID.
       final body = {
-        'tableNumber': cart.tableNumber ?? 1,
+        'tableId': tableId,
         if (_notesController.text.trim().isNotEmpty)
           'notes': _notesController.text.trim(),
         'items': cart.items

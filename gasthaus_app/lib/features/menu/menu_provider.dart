@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../core/models/category.dart';
 import '../../core/models/menu_item.dart';
 import '../../core/services/api_service.dart';
+import '../../core/services/socket_service.dart';
 
 // MenuProvider manages all state for the menu screen.
 //
@@ -22,6 +25,11 @@ class MenuProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Timer drives the 60-second polling fallback.
+  // It fires loadMenu() periodically in case a WebSocket event was missed
+  // (e.g. the app was backgrounded, or the connection dropped briefly).
+  Timer? _pollTimer;
+
   // Public read-only getters. The underscore (_) prefix on the fields means
   // they're private — callers can only read via these getters, not mutate.
   List<Category> get categories => _categories;
@@ -36,6 +44,59 @@ class MenuProvider extends ChangeNotifier {
   // the method that returns a Future.
   MenuProvider() {
     loadMenu();
+    _subscribeToMenuUpdates();
+    _startPolling();
+  }
+
+  // Subscribe to /topic/menu WebSocket events.
+  // The backend broadcasts to this topic after any menu mutation (add/edit/
+  // delete/toggle). We simply call loadMenu() on receipt — no need to parse
+  // the payload since it's just a "something changed" signal.
+  void _subscribeToMenuUpdates() {
+    SocketService.instance.subscribeToMenu(() {
+      // Reload silently — don't show the loading spinner for background refreshes
+      // so the existing menu stays visible while the new data loads.
+      _silentReload();
+    });
+  }
+
+  // Start a 60-second polling timer as a fallback for missed WebSocket events.
+  // This covers cases where:
+  //   - The WebSocket wasn't connected when a menu change happened
+  //   - The app was backgrounded (Flutter may pause timers/sockets)
+  //   - The STOMP frame was lost due to a transient network issue
+  void _startPolling() {
+    _pollTimer = Timer.periodic(const Duration(seconds: 60), (_) {
+      _silentReload();
+    });
+  }
+
+  // Reload the menu without showing the loading skeleton.
+  // Used for background refreshes (WebSocket push or polling) so the user
+  // doesn't see the shimmer flash on data they already have on screen.
+  Future<void> _silentReload() async {
+    try {
+      final response = await ApiService.instance.dio.get('/menu/categories');
+      final data = response.data as List;
+      _categories = data
+          .map((c) => Category.fromJson(c as Map<String, dynamic>))
+          .toList();
+      notifyListeners();
+    } catch (_) {
+      // Silently ignore errors on background refreshes — the user already
+      // has menu data on screen. Errors during manual loadMenu() still show.
+    }
+  }
+
+  // dispose() is called when the provider is removed from the widget tree.
+  // We must cancel the timer and WebSocket subscription to avoid memory leaks.
+  // In Flutter, any resource that lives outside the widget tree (timers,
+  // streams, subscriptions) must be cleaned up in dispose().
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    SocketService.instance.unsubscribeFromMenu();
+    super.dispose();
   }
 
   Future<void> loadMenu() async {

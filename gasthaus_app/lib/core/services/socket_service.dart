@@ -157,6 +157,28 @@ class SocketService {
     }
   }
 
+  // subscribeToMenu subscribes to menu change broadcasts.
+  // The backend sends to /topic/menu after any create/update/delete/toggle.
+  // The callback receives no meaningful data — it's just a signal to re-fetch.
+  void subscribeToMenu(void Function() onMenuChanged) {
+    const destination = '/topic/menu';
+    if (_subscriptions.containsKey(destination)) return;
+
+    final unsubscribe = _client?.subscribe(
+      destination: destination,
+      callback: (_) => onMenuChanged(),
+    );
+
+    if (unsubscribe != null) {
+      _subscriptions[destination] = unsubscribe;
+    }
+  }
+
+  void unsubscribeFromMenu() {
+    _subscriptions['/topic/menu']?.call(unsubscribeHeaders: {});
+    _subscriptions.remove('/topic/menu');
+  }
+
   // unsubscribeFromOrder cancels a specific order subscription.
   // Call this in OrderTrackingScreen.dispose() to avoid memory leaks
   // and unnecessary messages after the screen is removed.
