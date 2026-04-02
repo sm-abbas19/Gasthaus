@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../../core/models/user.dart';
 import '../../core/services/api_service.dart';
@@ -90,8 +91,17 @@ class AuthProvider extends ChangeNotifier {
   }
 
   String _extractMessage(Exception e) {
+    // DioException wraps our ApiException inside its .error field.
+    // The interceptor in ApiService constructs the DioException this way:
+    //   DioException(error: ApiException(message: "..."), ...)
+    // So we must unwrap one level to get the human-readable message.
+    if (e is DioException && e.error is ApiException) {
+      return (e.error as ApiException).message;
+    }
+    // Direct ApiException (shouldn't normally happen but safe to handle).
     if (e is ApiException) return e.message;
-    return e.toString();
+    // Fallback — never expose raw toString() / JSON to the user.
+    return 'Something went wrong. Please try again.';
   }
 
   void _setLoading(bool value) {

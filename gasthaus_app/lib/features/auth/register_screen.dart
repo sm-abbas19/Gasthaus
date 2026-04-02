@@ -17,6 +17,12 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  // GlobalKey<FormState> lets us call _formKey.currentState!.validate() to
+  // trigger all field validators at once and collect their results.
+  // This is the standard Flutter pattern for form validation — think of it
+  // as a reference handle to the Form widget below.
+  final _formKey = GlobalKey<FormState>();
+
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -36,36 +42,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> _submit() async {
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
-    final confirm = _confirmController.text;
-
-    // Client-side validation before hitting the network.
-    // This gives instant feedback without a round trip.
-    if (name.isEmpty || email.isEmpty || password.isEmpty || confirm.isEmpty) {
-      _showError('Please fill in all fields.');
-      return;
-    }
-    if (password.length < 6) {
-      _showError('Password must be at least 6 characters.');
-      return;
-    }
-    if (password != confirm) {
-      _showError('Passwords do not match.');
-      return;
-    }
+    // validate() calls every TextFormField's validator function.
+    // If any returns a non-null string, it shows that string inline under
+    // the field and returns false — we bail out before hitting the network.
+    if (!_formKey.currentState!.validate()) return;
 
     final auth = context.read<AuthProvider>();
 
     try {
-      await auth.register(name, email, password);
+      await auth.register(
+        _nameController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       if (mounted) {
         // After successful registration the user is logged in automatically
         // (the backend returns a token). Go to /menu and clear the nav stack.
         context.go('/menu');
       }
     } catch (_) {
+      // Only API-level errors (e.g. email already taken) go to the snackbar.
+      // Client-side validation errors are shown inline by the Form validators.
       if (mounted) {
         _showError(auth.error ?? 'Registration failed. Please try again.');
       }
@@ -127,127 +124,175 @@ class _RegisterScreenState extends State<RegisterScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'CREATE ACCOUNT',
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-              letterSpacing: 11 * 0.3,
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Full Name
-          _buildFieldLabel('FULL NAME'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _nameController,
-            textCapitalization: TextCapitalization.words,
-            // TextCapitalization.words auto-capitalizes the first letter of
-            // each word — appropriate for a name field.
-            textInputAction: TextInputAction.next,
-            decoration: const InputDecoration(hintText: 'Ahmed Al-Hassan'),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Email
-          _buildFieldLabel('EMAIL'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            autocorrect: false,
-            enableSuggestions: false,
-            decoration: const InputDecoration(hintText: 'you@example.com'),
-          ),
-
-          const SizedBox(height: 16),
-
-          // Password
-          _buildFieldLabel('PASSWORD'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            textInputAction: TextInputAction.next,
-            decoration: InputDecoration(
-              hintText: 'Min. 6 characters',
-              suffixIcon: GestureDetector(
-                onTap: () =>
-                    setState(() => _obscurePassword = !_obscurePassword),
-                child: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  color: AppColors.textSecondary,
-                  size: 20,
-                ),
+      // Form is a Flutter widget that groups TextFormFields together.
+      // It associates with _formKey so we can call validate() on all
+      // child TextFormFields at once from _submit().
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'CREATE ACCOUNT',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMuted,
+                letterSpacing: 11 * 0.3,
               ),
             ),
-          ),
 
-          const SizedBox(height: 16),
+            const SizedBox(height: 24),
 
-          // Confirm Password
-          _buildFieldLabel('CONFIRM PASSWORD'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _confirmController,
-            obscureText: _obscureConfirm,
-            // TextInputAction.done closes the keyboard and triggers submit.
-            textInputAction: TextInputAction.done,
-            onSubmitted: (_) => _submit(),
-            decoration: InputDecoration(
-              hintText: 'Repeat password',
-              suffixIcon: GestureDetector(
-                onTap: () =>
-                    setState(() => _obscureConfirm = !_obscureConfirm),
-                child: Icon(
-                  _obscureConfirm
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  color: AppColors.textSecondary,
-                  size: 20,
+            // Full Name
+            // TextFormField is TextField + a validator hook that integrates
+            // with the parent Form. The validator runs when validate() is
+            // called; returning a non-null string shows it as red error text
+            // directly below the field (inline), and returning null means valid.
+            _buildFieldLabel('FULL NAME'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _nameController,
+              textCapitalization: TextCapitalization.words,
+              // TextCapitalization.words auto-capitalizes the first letter of
+              // each word — appropriate for a name field.
+              textInputAction: TextInputAction.next,
+              decoration: const InputDecoration(hintText: 'Ahmed Al-Hassan'),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Full name is required';
+                }
+                return null; // null = valid
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Email
+            _buildFieldLabel('EMAIL'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.next,
+              autocorrect: false,
+              enableSuggestions: false,
+              decoration: const InputDecoration(hintText: 'you@example.com'),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Email is required';
+                }
+                // Simple email format check using a regex.
+                // The RegExp checks for a basic user@domain.tld structure.
+                final emailRegex = RegExp(r'^[^@]+@[^@]+\.[^@]+$');
+                if (!emailRegex.hasMatch(value.trim())) {
+                  return 'Enter a valid email';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 16),
+
+            // Password
+            _buildFieldLabel('PASSWORD'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.next,
+              decoration: InputDecoration(
+                hintText: 'Min. 6 characters',
+                suffixIcon: GestureDetector(
+                  onTap: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
+                  child: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
                 ),
               ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Password is required';
+                }
+                if (value.length < 6) {
+                  return 'Password must be at least 6 characters';
+                }
+                return null;
+              },
             ),
-          ),
 
-          const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-          // Create Account button
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: auth.isLoading ? null : _submit,
-              child: auth.isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(Colors.white),
-                      ),
-                    )
-                  : Text(
-                      'CREATE ACCOUNT',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 14 * 0.08,
-                      ),
-                    ),
+            // Confirm Password
+            _buildFieldLabel('CONFIRM PASSWORD'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _confirmController,
+              obscureText: _obscureConfirm,
+              // TextInputAction.done closes the keyboard and triggers submit.
+              textInputAction: TextInputAction.done,
+              onFieldSubmitted: (_) => _submit(),
+              decoration: InputDecoration(
+                hintText: 'Repeat password',
+                suffixIcon: GestureDetector(
+                  onTap: () =>
+                      setState(() => _obscureConfirm = !_obscureConfirm),
+                  child: Icon(
+                    _obscureConfirm
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Please confirm your password';
+                }
+                // Compare against the password field's current text.
+                // This is why we keep both controllers in state.
+                if (value != _passwordController.text) {
+                  return 'Passwords do not match';
+                }
+                return null;
+              },
             ),
-          ),
-        ],
+
+            const SizedBox(height: 24),
+
+            // Create Account button
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                onPressed: auth.isLoading ? null : _submit,
+                child: auth.isLoading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        'CREATE ACCOUNT',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 14 * 0.08,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

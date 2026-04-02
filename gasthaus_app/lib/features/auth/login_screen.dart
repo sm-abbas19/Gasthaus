@@ -22,6 +22,11 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  // GlobalKey<FormState> connects this State to the Form widget below.
+  // Calling _formKey.currentState!.validate() triggers all child
+  // TextFormField validators at once and returns false if any fail.
+  final _formKey = GlobalKey<FormState>();
+
   // TextEditingController is Flutter's way to read/write text field content
   // programmatically. Without it you can't get the current value on submit.
   // Must be disposed when the widget is removed from the tree to free memory.
@@ -31,6 +36,11 @@ class _LoginScreenState extends State<LoginScreen> {
   // Controls whether the password field shows dots or plain text.
   // Stored in State so toggling it calls setState() and rebuilds just this widget.
   bool _obscurePassword = true;
+
+  // Holds the API-level error message (wrong password, account not found, etc.).
+  // Null means no error is shown. We use setState() to update this so the
+  // widget rebuilds and renders the error inline inside the card.
+  String? _apiError;
 
   // Tracks whether a login request is in flight.
   // We derive this from AuthProvider.isLoading rather than keeping a local
@@ -48,14 +58,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Called when the user taps "Sign In".
   Future<void> _submit() async {
-    // Trim whitespace from email — a common UX courtesy.
-    final email = _emailController.text.trim();
-    final password = _passwordController.text;
+    // Clear any previous API error when the user retries.
+    setState(() => _apiError = null);
 
-    if (email.isEmpty || password.isEmpty) {
-      _showError('Please enter your email and password.');
-      return;
-    }
+    // validate() runs every TextFormField's validator in the Form.
+    // If any returns a non-null string, that string appears inline below
+    // the field as red error text, and validate() returns false — we stop here.
+    if (!_formKey.currentState!.validate()) return;
 
     // context.read<T>() fetches a Provider without subscribing to rebuilds.
     // We use read (not watch) here because we only need to call a method,
@@ -63,7 +72,10 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.read<AuthProvider>();
 
     try {
-      await auth.login(email, password);
+      await auth.login(
+        _emailController.text.trim(),
+        _passwordController.text,
+      );
       // `mounted` checks that this State is still attached to the widget tree.
       // After an async gap, the user might have navigated away — calling
       // context.go() on a detached context would throw.
@@ -74,25 +86,14 @@ class _LoginScreenState extends State<LoginScreen> {
         context.go('/menu');
       }
     } catch (_) {
-      // The AuthProvider already captured the error message in auth.error.
-      // We catch here just to prevent the exception from propagating unhandled.
+      // Store the API error in state so it renders inline inside the card,
+      // rather than floating as a SnackBar that the user might miss.
       if (mounted) {
-        _showError(auth.error ?? 'Sign in failed. Please try again.');
+        setState(() {
+          _apiError = auth.error ?? 'Sign in failed. Please try again.';
+        });
       }
     }
-  }
-
-  void _showError(String message) {
-    // ScaffoldMessenger shows a SnackBar at the bottom of the nearest Scaffold.
-    // It's accessed via the context, which must be inside a Scaffold tree.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.error,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
   }
 
   @override
@@ -156,128 +157,184 @@ class _LoginScreenState extends State<LoginScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Section header label — small caps, muted, tracked
-          Text(
-            'SIGN IN',
-            style: GoogleFonts.inter(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textMuted,
-              letterSpacing: 11 * 0.3,
+      // Form groups TextFormFields so _formKey.currentState!.validate()
+      // triggers all their validators in one call from _submit().
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Section header label — small caps, muted, tracked
+            Text(
+              'SIGN IN',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textMuted,
+                letterSpacing: 11 * 0.3,
+              ),
             ),
-          ),
 
-          const SizedBox(height: 28),
+            const SizedBox(height: 28),
 
-          // Email field
-          _buildFieldLabel('EMAIL'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _emailController,
-            // keyboardType hints the OS to show an email keyboard (with @ key).
-            keyboardType: TextInputType.emailAddress,
-            // textInputAction controls the action button on the soft keyboard.
-            // next moves focus to the next field instead of submitting.
-            textInputAction: TextInputAction.next,
-            autocorrect: false,
-            // Disable autocorrect and suggestions for email — they interfere.
-            enableSuggestions: false,
-            decoration: const InputDecoration(
-              hintText: 'you@example.com',
+            // Email field
+            // TextFormField = TextField + validator integration with the Form.
+            // The validator runs on validate(); returning a non-null string
+            // shows it as red text inline below the field.
+            _buildFieldLabel('EMAIL'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _emailController,
+              // keyboardType hints the OS to show an email keyboard (with @ key).
+              keyboardType: TextInputType.emailAddress,
+              // textInputAction controls the action button on the soft keyboard.
+              // next moves focus to the next field instead of submitting.
+              textInputAction: TextInputAction.next,
+              autocorrect: false,
+              // Disable autocorrect and suggestions for email — they interfere.
+              enableSuggestions: false,
+              decoration: const InputDecoration(
+                hintText: 'you@example.com',
+              ),
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Email is required';
+                }
+                return null; // null = valid, proceed
+              },
             ),
-          ),
 
-          const SizedBox(height: 20),
+            const SizedBox(height: 20),
 
-          // Password field
-          _buildFieldLabel('PASSWORD'),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _passwordController,
-            obscureText: _obscurePassword,
-            textInputAction: TextInputAction.done,
-            // onSubmitted fires when the user taps the keyboard's done/return key.
-            onSubmitted: (_) => _submit(),
-            decoration: InputDecoration(
-              hintText: '••••••••',
-              // suffixIcon is an icon/button inside the field on the right side.
-              suffixIcon: GestureDetector(
-                onTap: () {
-                  // setState() tells Flutter to rebuild this widget with
-                  // the updated _obscurePassword value.
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
-                child: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  color: AppColors.textSecondary,
-                  size: 20,
+            // Password field
+            _buildFieldLabel('PASSWORD'),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              textInputAction: TextInputAction.done,
+              // onFieldSubmitted is the TextFormField equivalent of onSubmitted.
+              onFieldSubmitted: (_) => _submit(),
+              decoration: InputDecoration(
+                hintText: '••••••••',
+                // suffixIcon is an icon/button inside the field on the right side.
+                suffixIcon: GestureDetector(
+                  onTap: () {
+                    // setState() tells Flutter to rebuild this widget with
+                    // the updated _obscurePassword value.
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
+                  child: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
+                ),
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Password is required';
+                }
+                return null;
+              },
+            ),
+
+            const SizedBox(height: 8),
+
+            // Forgot password — right-aligned, amber text
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {}, // Not implemented — placeholder per spec
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.primary,
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text(
+                  'Forgot password?',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.primary,
+                  ),
                 ),
               ),
             ),
-          ),
 
-          const SizedBox(height: 8),
-
-          // Forgot password — right-aligned, amber text
-          Align(
-            alignment: Alignment.centerRight,
-            child: TextButton(
-              onPressed: () {}, // Not implemented — placeholder per spec
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                padding: EdgeInsets.zero,
-                minimumSize: Size.zero,
-                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              ),
-              child: Text(
-                'Forgot password?',
-                style: GoogleFonts.inter(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.primary,
-                ),
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Sign In button — full width, amber, shows spinner when loading
-          SizedBox(
-            width: double.infinity,
-            height: 52,
-            child: ElevatedButton(
-              // Disable the button while a request is in flight to prevent
-              // double-submits. Setting onPressed to null disables it.
-              onPressed: auth.isLoading ? null : _submit,
-              child: auth.isLoading
-                  // Show a spinner inside the button during loading.
-                  // SizedBox constrains the CircularProgressIndicator so it
-                  // doesn't fill the entire button height.
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation(Colors.white),
+            // API error block — only shown when the server rejects credentials.
+            // AnimatedSize smoothly expands/collapses the space so the button
+            // doesn't jump abruptly when the error appears or clears.
+            AnimatedSize(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeInOut,
+              child: _apiError != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          // Light red tint background to make the error prominent
+                          // without relying on a floating SnackBar.
+                          color: AppColors.error.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                              color: AppColors.error.withValues(alpha: 0.3)),
+                        ),
+                        child: Text(
+                          _apiError!,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppColors.error,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     )
-                  : Text(
-                      'SIGN IN',
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 14 * 0.1,
-                      ),
-                    ),
+                  : const SizedBox.shrink(),
+              // SizedBox.shrink() collapses to zero size when there's no error,
+              // so no extra blank space is reserved in the layout.
             ),
-          ),
-        ],
+
+            const SizedBox(height: 20),
+
+            // Sign In button — full width, amber, shows spinner when loading
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton(
+                // Disable the button while a request is in flight to prevent
+                // double-submits. Setting onPressed to null disables it.
+                onPressed: auth.isLoading ? null : _submit,
+                child: auth.isLoading
+                    // Show a spinner inside the button during loading.
+                    // SizedBox constrains the CircularProgressIndicator so it
+                    // doesn't fill the entire button height.
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation(Colors.white),
+                        ),
+                      )
+                    : Text(
+                        'SIGN IN',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 14 * 0.1,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
