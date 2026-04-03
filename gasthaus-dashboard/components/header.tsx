@@ -42,18 +42,18 @@ export default function Header() {
     : 'AD'
 
   return (
-    <header className="fixed top-0 right-0 left-[240px] h-[56px] z-40 bg-[#78350F] flex items-center justify-between px-8">
-      <h2 className="text-[15px] font-semibold text-white">{title}</h2>
+    <header className="fixed top-0 right-0 left-[240px] h-[52px] z-40 bg-[#78350F] border-b border-black/10 flex items-center justify-between px-6">
+      <h2 className="text-[13px] font-semibold text-white/90 tracking-wide">{title}</h2>
 
-      <div className="flex items-center gap-5">
-        <span className="text-xs text-white/80 font-medium">{formatDate()}</span>
+      <div className="flex items-center gap-4">
+        <span className="text-[11px] text-white/45 font-medium">{formatDate()}</span>
 
-        <div className="flex items-center gap-3">
-          <button className="w-8 h-8 flex items-center justify-center text-white/70 hover:text-white transition-colors">
-            <Bell size={18} />
+        <div className="flex items-center gap-2.5">
+          <button className="w-7 h-7 flex items-center justify-center text-white/50 hover:text-white transition-colors">
+            <Bell size={16} />
           </button>
 
-          <div className="w-7 h-7 rounded bg-white/20 flex items-center justify-center text-white text-[10px] font-bold">
+          <div className="w-6 h-6 rounded bg-white/15 flex items-center justify-center text-white text-[10px] font-bold">
             {initials}
           </div>
         </div>

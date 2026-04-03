@@ -64,6 +64,7 @@ export interface OrderStatusHistory {
 
 export interface Order {
   id: string
+  orderNumber?: string   // first 8 chars of UUID uppercase, from @Transient getter
   status: OrderStatus
   totalAmount: number
   createdAt: string
@@ -79,9 +80,10 @@ export interface Order {
 
 export interface Review {
   id: string
+  orderId?: string       // exposed via @JsonProperty on Review entity
   rating: number
   comment?: string
   createdAt: string
   customer?: User
-  menuItem?: MenuItem
+  menuItem?: MenuItem    // nullable — order-level reviews have no menuItem
 }

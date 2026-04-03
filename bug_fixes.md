@@ -238,3 +238,33 @@ After logging out and logging back in, menu availability changes from the dashbo
 Removed `_callbacks.clear()` and `_connectListeners.clear()` from `disconnect()`. These hold durable subscription intent from providers that live for the app's lifetime and must survive logout/login cycles. Only `_subscriptions` (connection-specific STOMP handles) is cleared on disconnect, as those cannot be reused across sessions. On the next login `_onConnect` fires → finds 1 connect listener ('menu') → calls `subscribeToMenu()` with `_isConnected=true` → `_doSubscribe()` runs immediately, same path as the working order screen.
 
 ---
+
+---
+
+## BF-011 — Reviews per-item instead of per-order; inconsistent order IDs; menu sheet swipe disabled
+
+**Files:** `gasthaus-backend-java/.../Review.java`, `CreateReviewRequest.java`, `ReviewsService.java`, `ReviewRepository.java`, `Order.java`, `gasthaus_app/lib/features/reviews/write_review_sheet.dart`, `orders_screen.dart`, `review.dart`, `order.dart`, `profile_screen.dart`, `item_detail_sheet.dart`, `ai_waiter_screen.dart`, `gasthaus-dashboard/components/sidebar.tsx`, `header.tsx`, `types/index.ts`, `reviews/page.tsx`, `order-detail-modal.tsx`, `orders/page.tsx`
+
+**Date:** 2026-04-03
+
+### What
+1. Reviews were per menu item, but UX expects one review per whole order.
+2. Order IDs shown inconsistently: Flutter showed full UUID; dashboard reviews showed last 5 chars of the *review* ID (not order ID); modal showed first 8 of UUID; kanban already correct.
+3. Menu item bottom sheet had `enableDrag: false` — couldn't swipe down to dismiss.
+4. Gustav welcome banner was an amber/yellow tinted card.
+5. Dashboard sidebar/header used wide paddings making nav items look blocky.
+6. Profile screen had a non-functional REVIEWS stat badge.
+7. Dashboard orders search only matched customer name and table, not order ID.
+
+### Why
+Review model had `menuItemId` as required and a `@@unique([customerId, menuItemId, orderId])` constraint — this allowed multiple reviews per order (one per item). Order had no short display ID exposed in the API. `enableDrag: false` was added to avoid scroll/drag conflicts but eliminated the swipe-to-dismiss gesture entirely. Dashboard `ReviewCard` used `review.id.slice(-5)` instead of `review.orderId`.
+
+### Fix
+- **Reviews:** Changed to order-level — `menuItem` made nullable, unique constraint changed to `(customer_id, order_id)`, `menuItemId` removed from `CreateReviewRequest`, service updated to check duplicate by `(customerId, orderId)` only, `LEFT JOIN FETCH` on menuItem in repository queries. Flutter `WriteReviewSheet` rewritten as `OrderReviewSheet` showing all order items; orders screen fetches existing review before opening sheet and passes it as read-only mode if present.
+- **Order IDs:** Added `@Transient @JsonProperty("orderNumber")` getter to `Order.java` returning first 8 hex chars of UUID uppercase. `Review.java` exposes `orderId` via `@JsonProperty`. Dashboard reviews page uses `review.orderId`. Flutter uses `order.orderNumber` consistently.
+- **Swipe:** `enableDrag: false` → `true`.
+- **Gustav banner:** Replaced amber card with white card + amber icon circle.
+- **Sidebar/Header:** Reduced padding, slimmer nav items, hairline dividers; header made dark amber to match sidebar.
+- **Profile badge:** Removed non-functional REVIEWS `_StatCell`.
+- **Search:** Orders filter now also matches against order ID string.
+

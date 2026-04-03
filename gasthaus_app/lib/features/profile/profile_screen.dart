@@ -195,14 +195,6 @@ class ProfileScreen extends StatelessWidget {
                   label: 'COMPLETED',
                   valueColor: AppColors.primary,
                 ),
-                const VerticalDivider(
-                    width: 1, color: AppColors.divider, thickness: 1),
-                _StatCell(
-                  // Reviews stat would come from a dedicated endpoint in Phase 8.
-                  // For now we show completed as a proxy.
-                  value: orders.orders.isEmpty ? '--' : '★',
-                  label: 'REVIEWS',
-                ),
               ],
             ),
           ),

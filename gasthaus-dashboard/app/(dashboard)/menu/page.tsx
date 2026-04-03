@@ -149,7 +149,7 @@ export default function MenuPage() {
   }, [form.previewUrl])
 
   return (
-    <div className="flex h-[calc(100vh-56px)] overflow-hidden">
+    <div className="flex h-[calc(100vh-52px)] overflow-hidden">
 
       {/* ── Category sidebar ───────────────────────────────────────── */}
       <aside className="w-[200px] shrink-0 bg-white border-r border-[#E5E7EB] flex flex-col py-6 overflow-y-auto">

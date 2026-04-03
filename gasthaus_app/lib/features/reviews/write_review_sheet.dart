@@ -1,46 +1,76 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
+import '../../core/models/order.dart';
+import '../../core/models/review.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 
-// WriteReviewSheet is displayed as a modal bottom sheet — it slides up from
-// the bottom of the screen over existing content rather than replacing it.
-// It's shown via showModalBottomSheet() in OrdersScreen, not pushed as a route.
-// Using showModalBottomSheet rather than a full screen keeps context:
-// the user can see they're reviewing an item from a specific order.
-class WriteReviewSheet extends StatefulWidget {
-  final String menuItemId;
-  final String menuItemName;
-  final String? menuItemImage;
-  final String orderId;
+// ─────────────────────────────────────────────────────────────────────────────
+// Public entry point
+// ─────────────────────────────────────────────────────────────────────────────
 
-  const WriteReviewSheet({
+/// Opens the review sheet for the given [order].
+///
+/// If [existingReview] is non-null the sheet opens in READ-ONLY mode,
+/// displaying the review the customer already left.
+/// If null the sheet opens in WRITE mode so the customer can leave a review.
+///
+/// The call site (OrdersScreen) is responsible for fetching the existing review
+/// before calling this function so it can pass the correct mode.
+void showOrderReviewSheet(
+  BuildContext context, {
+  required Order order,
+  Review? existingReview,
+}) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => OrderReviewSheet(
+      order: order,
+      existingReview: existingReview,
+    ),
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OrderReviewSheet widget
+// ─────────────────────────────────────────────────────────────────────────────
+
+// StatefulWidget because write mode has local mutable state (rating, comment,
+// loading flag). Read-only mode uses the same widget with all inputs disabled.
+class OrderReviewSheet extends StatefulWidget {
+  final Order order;
+  final Review? existingReview; // non-null → read-only mode
+
+  const OrderReviewSheet({
     super.key,
-    required this.menuItemId,
-    required this.menuItemName,
-    this.menuItemImage,
-    required this.orderId,
+    required this.order,
+    this.existingReview,
   });
 
   @override
-  State<WriteReviewSheet> createState() => _WriteReviewSheetState();
+  State<OrderReviewSheet> createState() => _OrderReviewSheetState();
 }
 
-class _WriteReviewSheetState extends State<WriteReviewSheet> {
-  // Rating starts at 0 (no stars selected) — the submit button stays disabled
-  // until the user selects at least 1 star.
-  double _rating = 0;
-  final _commentController = TextEditingController();
+class _OrderReviewSheetState extends State<OrderReviewSheet> {
+  // In write mode these start at defaults; in read-only mode they're pre-filled
+  // from existingReview and the UI elements are non-interactive.
+  late double _rating;
+  late final TextEditingController _commentController;
   bool _isSubmitting = false;
-  // Holds an inline error message shown below the submit button on failure.
-  // Cleared when the user retries.
   String? _errorMessage;
 
-  // _ratingLabel maps the current numeric rating to a human-readable label
-  // shown below the stars (e.g. 4 stars → "Good").
+  // True when the sheet is showing an existing review (read-only).
+  bool get _readOnly => widget.existingReview != null;
+
+  final _dateFmt = DateFormat('MMM d, y');
+
   String get _ratingLabel {
     if (_rating == 0) return 'Tap to rate';
     if (_rating <= 1) return 'Poor';
@@ -51,6 +81,16 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    // Pre-fill from existing review if in read-only mode, otherwise start empty.
+    _rating = widget.existingReview?.rating.toDouble() ?? 0;
+    _commentController = TextEditingController(
+      text: widget.existingReview?.comment ?? '',
+    );
+  }
+
+  @override
   void dispose() {
     _commentController.dispose();
     super.dispose();
@@ -58,25 +98,20 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
 
   Future<void> _submit() async {
     if (_rating == 0) return;
-
-    // Clear any previous error before retrying.
     setState(() { _isSubmitting = true; _errorMessage = null; });
+
     try {
-      // POST /reviews body per the backend spec:
-      // { menuItemId, orderId, rating (int), comment? }
+      // POST /reviews — order-level, no menuItemId needed.
+      // Body: { orderId, rating (int), comment? }
       await ApiService.instance.dio.post('/reviews', data: {
-        'menuItemId': widget.menuItemId,
-        'orderId': widget.orderId,
-        'rating': _rating.round(), // flutter_rating_bar gives a double; backend expects int
+        'orderId': widget.order.id,
+        'rating': _rating.round(),
         if (_commentController.text.trim().isNotEmpty)
           'comment': _commentController.text.trim(),
       });
 
-      // Close the sheet — the orders list will refresh automatically.
-      if (mounted) Navigator.of(context).pop();
+      if (mounted) Navigator.of(context).pop(true); // pop with `true` = review submitted
     } catch (e) {
-      // Show the error inline below the submit button so the user
-      // doesn't lose their typed review and can retry immediately.
       if (mounted) setState(() => _errorMessage = e.toString());
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -85,18 +120,13 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Padding.bottom of viewInsets.bottom pushes the sheet up when the
-    // keyboard appears — otherwise the keyboard would cover the text field.
-    // This is the standard pattern for keyboard-aware bottom sheets.
     final keyboardInset = MediaQuery.of(context).viewInsets.bottom;
 
     return Padding(
       padding: EdgeInsets.only(bottom: keyboardInset),
       child: Container(
-        // 70% of screen height matches the stitch design.
-        // Using a fixed height fraction rather than intrinsic size avoids
-        // the sheet jumping in size as the user types.
-        height: MediaQuery.of(context).size.height * 0.70,
+        // 72% height gives enough room for the order summary + stars + comment
+        height: MediaQuery.of(context).size.height * 0.72,
         decoration: const BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -105,20 +135,21 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
           children: [
             _buildDragHandle(),
             Expanded(
-              // SingleChildScrollView lets the content scroll if the keyboard
-              // pushes it upward and content no longer fits.
               child: SingleChildScrollView(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 32),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
+                    _buildOrderSummary(),
+                    const SizedBox(height: 24),
                     _buildStarRating(),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
                     _buildCommentInput(),
-                    const SizedBox(height: 32),
-                    _buildSubmitButton(),
+                    const SizedBox(height: 28),
+                    if (!_readOnly) _buildSubmitButton(),
+                    if (_readOnly) _buildReviewedBadge(),
                   ],
                 ),
               ),
@@ -130,11 +161,8 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
   }
 
   Widget _buildDragHandle() {
-    // The drag handle is a visual affordance indicating the sheet can be
-    // swiped down to dismiss. Flutter's DraggableScrollableSheet handles
-    // the gesture; we just render the indicator.
     return Padding(
-      padding: const EdgeInsets.only(top: 12, bottom: 20),
+      padding: const EdgeInsets.only(top: 12, bottom: 16),
       child: Center(
         child: Container(
           width: 40,
@@ -149,62 +177,90 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
   }
 
   Widget _buildHeader() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Item thumbnail — if available
-        if (widget.menuItemImage != null)
-          Padding(
-            padding: const EdgeInsets.only(right: 14),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Image.network(
-                widget.menuItemImage!,
-                width: 56,
-                height: 56,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _imgFallback(),
-              ),
-            ),
-          ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Leave a Review',
-                  style: AppTextStyles.screenTitle
-                      .copyWith(fontSize: 20)),
-              const SizedBox(height: 4),
-              Text(
-                widget.menuItemName,
-                style: AppTextStyles.bodySecondary,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
+        Text(
+          // Different titles for write vs read-only mode
+          _readOnly ? 'Your Review' : 'Leave a Review',
+          style: AppTextStyles.screenTitle.copyWith(fontSize: 20),
         ),
+        const SizedBox(height: 4),
+        Text(
+          // Show the short order ID reference below the title
+          'Order #${widget.order.orderNumber}',
+          style: AppTextStyles.bodySecondary,
+        ),
+        if (_readOnly && widget.existingReview != null) ...[
+          const SizedBox(height: 2),
+          Text(
+            'Submitted ${_dateFmt.format(widget.existingReview!.createdAt.toLocal())}',
+            style: AppTextStyles.caption,
+          ),
+        ],
       ],
     );
   }
 
-  Widget _imgFallback() {
+  // Shows the list of items in the order so the customer remembers what they ate.
+  // This replaces the old single-item thumbnail header.
+  Widget _buildOrderSummary() {
     return Container(
-      width: 56,
-      height: 56,
-      color: AppColors.divider,
-      child: const Icon(Icons.restaurant,
-          size: 24, color: AppColors.textMuted),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.divider,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'ORDER ITEMS',
+            style: AppTextStyles.sectionHeader,
+          ),
+          const SizedBox(height: 10),
+          // Render each order item as a single line: "× qty  Item Name"
+          ...widget.order.items.map((item) => Padding(
+            padding: const EdgeInsets.only(bottom: 6),
+            child: Row(
+              children: [
+                // Quantity badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    '×${item.quantity}',
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    item.menuItemName,
+                    style: AppTextStyles.body.copyWith(fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          )),
+        ],
+      ),
     );
   }
 
   Widget _buildStarRating() {
     return Column(
       children: [
-        // RatingBar.builder from the flutter_rating_bar package.
-        // It renders N star icons and calls onRatingUpdate with the selected value.
-        // itemBuilder returns the widget for each star — we use filled/outlined
-        // Material icons so no external assets are needed.
-        // allowHalfRating: false means only whole-number ratings (1–5).
+        // In read-only mode the rating bar is non-interactive (ignoreGestures: true).
+        // flutter_rating_bar respects this flag — stars render but taps do nothing.
         Center(
           child: RatingBar.builder(
             initialRating: _rating,
@@ -214,24 +270,22 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
             itemCount: 5,
             itemSize: 40,
             itemPadding: const EdgeInsets.symmetric(horizontal: 4),
+            ignoreGestures: _readOnly, // disable interaction in read-only mode
             itemBuilder: (context, _) => const Icon(
               Icons.star_rounded,
               color: AppColors.primary,
             ),
             unratedColor: AppColors.border,
-            onRatingUpdate: (value) => setState(() => _rating = value),
+            onRatingUpdate: _readOnly ? (_) {} : (v) => setState(() => _rating = v),
           ),
         ),
-        const SizedBox(height: 10),
-        // Rating label fades in as the user selects stars
+        const SizedBox(height: 8),
         AnimatedOpacity(
           opacity: 1.0,
           duration: const Duration(milliseconds: 200),
           child: Text(
             _ratingLabel,
-            style: AppTextStyles.bodySecondary.copyWith(
-              fontWeight: FontWeight.w500,
-            ),
+            style: AppTextStyles.bodySecondary.copyWith(fontWeight: FontWeight.w500),
           ),
         ),
       ],
@@ -249,20 +303,22 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
           children: [
             TextField(
               controller: _commentController,
-              maxLines: 5,
+              maxLines: 4,
               maxLength: 500,
-              // counterText '' hides the default Flutter character counter
-              // so we can render our own in the corner via the Stack.
-              maxLengthEnforcement:
-                  MaxLengthEnforcement.enforced,
+              // Read-only mode: disable keyboard and editing
+              readOnly: _readOnly,
+              enabled: !_readOnly,
+              maxLengthEnforcement: MaxLengthEnforcement.enforced,
               style: AppTextStyles.body.copyWith(fontSize: 13),
               decoration: InputDecoration(
-                counterText: '', // hide default counter
-                hintText: 'Tell others what you think about this dish…',
-                hintStyle:
-                    AppTextStyles.body.copyWith(color: AppColors.textMuted, fontSize: 13),
+                counterText: '',
+                hintText: _readOnly
+                    ? 'No written comment'
+                    : 'Tell others about your experience…',
+                hintStyle: AppTextStyles.body
+                    .copyWith(color: AppColors.textMuted, fontSize: 13),
                 filled: true,
-                fillColor: AppColors.surface,
+                fillColor: _readOnly ? AppColors.divider : AppColors.surface,
                 contentPadding: const EdgeInsets.all(16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -272,24 +328,26 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
                   borderRadius: BorderRadius.circular(10),
                   borderSide: const BorderSide(color: AppColors.border),
                 ),
+                disabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: const BorderSide(color: AppColors.border),
+                ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(
-                      color: AppColors.primary, width: 1.5),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
               ),
-              // Rebuild only the counter on each keystroke — using onChanged +
-              // setState is simpler than a ValueNotifier for a single counter value.
-              onChanged: (_) => setState(() {}),
+              onChanged: _readOnly ? null : (_) => setState(() {}),
             ),
-            // Character counter overlay in the bottom-right of the textarea
-            Padding(
-              padding: const EdgeInsets.only(right: 12, bottom: 10),
-              child: Text(
-                '${_commentController.text.length}/500',
-                style: AppTextStyles.caption,
+            if (!_readOnly)
+              Padding(
+                padding: const EdgeInsets.only(right: 12, bottom: 10),
+                child: Text(
+                  '${_commentController.text.length}/500',
+                  style: AppTextStyles.caption,
+                ),
               ),
-            ),
           ],
         ),
       ],
@@ -297,10 +355,7 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
   }
 
   Widget _buildSubmitButton() {
-    // Button is disabled (_rating == 0) until the user selects at least 1 star.
-    // ElevatedButton.onPressed = null renders the button in its disabled style.
     final canSubmit = _rating > 0 && !_isSubmitting;
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -315,8 +370,7 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
               disabledBackgroundColor: AppColors.border,
               disabledForegroundColor: AppColors.textMuted,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
+                  borderRadius: BorderRadius.circular(10)),
               elevation: 0,
             ),
             child: _isSubmitting
@@ -329,25 +383,27 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
                 : Text('Submit Review', style: AppTextStyles.buttonText),
           ),
         ),
-        // Inline error — shown directly below the button so the user's
-        // review text stays intact and they can fix the issue and retry.
         if (_errorMessage != null) ...[
           const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
               color: AppColors.error.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+              border:
+                  Border.all(color: AppColors.error.withValues(alpha: 0.3)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.error_outline, size: 16, color: AppColors.error),
+                const Icon(Icons.error_outline,
+                    size: 16, color: AppColors.error),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     _errorMessage!,
-                    style: AppTextStyles.caption.copyWith(color: AppColors.error),
+                    style: AppTextStyles.caption
+                        .copyWith(color: AppColors.error),
                   ),
                 ),
               ],
@@ -355,6 +411,34 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
           ),
         ],
       ],
+    );
+  }
+
+  // Shown in read-only mode instead of the submit button — a subtle badge
+  // confirming the review was already submitted.
+  Widget _buildReviewedBadge() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.divider,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.check_circle_outline,
+              size: 16, color: AppColors.textSecondary),
+          const SizedBox(width: 8),
+          Text(
+            'Review submitted',
+            style: AppTextStyles.body.copyWith(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

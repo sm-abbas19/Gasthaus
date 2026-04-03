@@ -300,10 +300,16 @@ export default function ReviewsPage() {
 
 // ── ReviewCard ─────────────────────────────────────────────────────────────
 
+// Returns a consistent 8-char uppercase display ID from a raw UUID string.
+function displayOrderId(rawId?: string): string {
+  if (!rawId) return '—'
+  return `#${rawId.replace(/-/g, '').slice(0, 8).toUpperCase()}`
+}
+
 function ReviewCard({ review }: { review: Review }) {
   const name    = review.customer?.name
   const low     = review.rating <= 2
-  const orderId = review.id.slice(-5).toUpperCase()
+  const orderId = displayOrderId(review.orderId)
 
   return (
     <div

@@ -25,12 +25,12 @@ void showItemDetail(BuildContext context, MenuItem item) {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     useSafeArea: true,
-    // Drag-to-dismiss is disabled because the sheet contains a SingleChildScrollView.
-    // When both gestures are active Flutter's hit-testing is ambiguous — a downward
-    // drag sometimes scrolls the content, sometimes dismisses the sheet, making the
-    // experience feel broken. With enableDrag: false the sheet only closes when the
-    // user taps the barrier outside it or presses back, which is fully predictable.
-    enableDrag: false,
+    // enableDrag: true lets the user swipe the sheet down to dismiss.
+    // Flutter resolves the conflict between sheet drag and scroll naturally:
+    // when the scroll is at the top a downward gesture dismisses the sheet;
+    // otherwise it scrolls. This is the standard modal sheet behaviour on both
+    // iOS and Android — the drag handle at the top provides a clear affordance.
+    enableDrag: true,
     builder: (_) => ItemDetailSheet(item: item),
   );
 }

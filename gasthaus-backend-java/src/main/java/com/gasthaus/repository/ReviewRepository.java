@@ -12,42 +12,32 @@ import java.util.UUID;
 /**
  * Repository for Review.
  *
- * NestJS equivalent: prisma.review.findMany / findFirst / create
+ * Reviews are now order-level (one per customer per order), so the duplicate
+ * check method is now existsByCustomer_IdAndOrder_Id instead of the old
+ * three-way (customer, menuItem, order) check.
  *
- * All review relationships are @ManyToOne (customer, menuItem, order),
- * so Spring Data resolves nested properties: MenuItem_Id → menuItem.id, etc.
+ * menuItem is nullable on Review, so all JPQL queries that join on menuItem
+ * use LEFT JOIN FETCH to avoid excluding reviews that have no menuItem.
  */
 @Repository
 public interface ReviewRepository extends JpaRepository<Review, UUID> {
 
     /**
-     * Prisma:
-     *   prisma.review.findFirst({
-     *     where: { customerId, menuItemId, orderId }
-     *   })
-     *   → used to prevent duplicate reviews
+     * Duplicate check: has this customer already reviewed this order?
+     * One review per (customer, order) — enforced here AND via @UniqueConstraint.
      *
-     * Returns boolean — more efficient than fetching the whole entity
-     * when we only need to know if a review already exists.
-     *
-     * Spring Data resolves the property paths:
+     * Spring Data resolves:
      *   Customer_Id → customer.id
-     *   MenuItem_Id → menuItem.id
      *   Order_Id    → order.id
      */
-    boolean existsByCustomer_IdAndMenuItem_IdAndOrder_Id(
-            UUID customerId, UUID menuItemId, UUID orderId);
+    boolean existsByCustomer_IdAndOrder_Id(UUID customerId, UUID orderId);
 
     /**
-     * Prisma:
-     *   prisma.review.findMany({
-     *     where: { menuItemId },
-     *     include: { customer: { select: { id, name } } },
-     *     orderBy: { createdAt: 'desc' }
-     *   })
+     * Fetch reviews for a menu item with customer names eagerly loaded.
+     * Used by getReviewsByItem() — legacy per-item reviews only.
      *
-     * Used in ReviewsService.getReviewsByItem() for the public item review page.
-     * JOIN FETCH customer so the service can include customer name in the response.
+     * LEFT JOIN FETCH r.menuItem is not needed here since we're already
+     * filtering by menuItemId, but we LEFT JOIN FETCH customer to avoid N+1.
      */
     @Query("""
             SELECT r FROM Review r
@@ -58,37 +48,26 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findByMenuItemIdWithCustomer(@Param("menuItemId") UUID menuItemId);
 
     /**
-     * Prisma:
-     *   prisma.review.findMany({
-     *     where: { orderId },
-     *     include: { menuItem: { select: { id, name } } },
-     *     orderBy: { createdAt: 'desc' }
-     *   })
-     *
-     * Used in ReviewsService.getReviewsByOrder() for customers viewing their reviews.
+     * Fetch all reviews for an order.
+     * Under the new order-level model this returns at most one result.
+     * Returns List for API compatibility with getReviewsByOrder().
      */
     @Query("""
             SELECT r FROM Review r
-            JOIN FETCH r.menuItem
             WHERE r.order.id = :orderId
             ORDER BY r.createdAt DESC
             """)
-    List<Review> findByOrderIdWithMenuItem(@Param("orderId") UUID orderId);
+    List<Review> findByOrderId(@Param("orderId") UUID orderId);
 
     /**
-     * Prisma:
-     *   prisma.review.findMany({
-     *     include: { customer: {...}, menuItem: {...} },
-     *     orderBy: { createdAt: 'desc' }
-     *   })
-     *
-     * Used in ReviewsService.getAllReviews() for the manager reviews page.
-     * Eagerly fetches both customer and menuItem to avoid N+1 on the full list.
+     * MANAGER dashboard: fetch all reviews with customer eagerly loaded.
+     * LEFT JOIN FETCH r.menuItem handles the nullable menuItem on order-level reviews —
+     * without LEFT, reviews with no menuItem would be excluded from results.
      */
     @Query("""
             SELECT r FROM Review r
             JOIN FETCH r.customer
-            JOIN FETCH r.menuItem
+            LEFT JOIN FETCH r.menuItem
             ORDER BY r.createdAt DESC
             """)
     List<Review> findAllWithDetails();

@@ -151,17 +151,18 @@ export default function OrdersPage() {
       if (period === 'today' && !isToday(o.createdAt))     return false
       if (period === 'week'  && !isThisWeek(o.createdAt))  return false
       if (search) {
-        const q     = search.toLowerCase()
+        const q     = search.toLowerCase().replace(/^#/, '') // strip leading # if typed
         const name  = o.customer?.name?.toLowerCase() ?? ''
         const table = o.table?.tableNumber?.toString() ?? ''
-        if (!name.includes(q) && !table.includes(q)) return false
+        const idStr = (o.orderNumber ?? o.id.replace(/-/g, '').slice(0, 8)).toLowerCase()
+        if (!name.includes(q) && !table.includes(q) && !idStr.includes(q)) return false
       }
       return true
     })
   }, [orders, search, period])
 
   return (
-    <div className="flex flex-col h-[calc(100vh-56px)] overflow-hidden">
+    <div className="flex flex-col h-[calc(100vh-52px)] overflow-hidden">
 
       {selectedId && (
         <OrderDetailModal orderId={selectedId} onClose={() => setSelectedId(null)} />
@@ -288,6 +289,10 @@ function OrderCard({
   onCardClick: (id: string) => void
 }) {
   const tableLabel  = order.table?.tableNumber ? `T${order.table.tableNumber}` : '—'
+  // orderNumber comes from the Spring Boot @Transient getter; fall back to first 8 chars of UUID
+  const displayId   = order.orderNumber
+    ? `#${String(order.orderNumber).padStart(4, '0')}`
+    : `#${order.id.slice(0, 8).toUpperCase()}`
   const name        = order.customer?.name ?? 'Guest'
   const summary     = order.items.slice(0, 2).map((i) => `${i.quantity}× ${i.menuItem.name}`).join(', ')
   const hasMore     = order.items.length > 2
@@ -315,9 +320,13 @@ function OrderCard({
         <span className="text-[10px] text-[#9CA3AF]">{timeAgo(order.createdAt)}</span>
       </div>
 
-      <h4 className={`text-sm font-semibold mb-1 ${dimmed ? 'text-[#6B7280]' : 'text-[#1C1C1E]'}`}>
-        {name}
+      {/* Order ID as the primary identifier — more useful than customer name on a Kanban card */}
+      <h4 className={`text-sm font-bold mb-0.5 font-mono tracking-wide ${dimmed ? 'text-[#9CA3AF]' : 'text-[#78350F]'}`}>
+        {displayId}
       </h4>
+      <p className={`text-[11px] mb-1 ${dimmed ? 'text-[#9CA3AF]' : 'text-[#6B7280]'}`}>
+        {name}
+      </p>
 
       <p className={`text-[11px] leading-relaxed ${dimmed ? 'text-[#9CA3AF]' : 'text-[#6B7280]'}`}>
         {summary}{hasMore ? ', …' : ''}

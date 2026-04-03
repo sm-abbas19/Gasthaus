@@ -62,7 +62,12 @@ class Order {
     final rawItems = json['orderItems'] ?? json['items'] ?? [];
     return Order(
       id: json['id']?.toString() ?? '',
-      orderNumber: json['orderNumber']?.toString() ?? json['id']?.toString() ?? '',
+      // orderNumber is a @Transient @JsonProperty on the Spring Boot Order entity,
+      // returning the first 8 chars of the UUID uppercase (e.g. "A1B2C3D4").
+      // Fall back to computing it from the full id if the backend value is absent.
+      orderNumber: json['orderNumber']?.toString()
+          ?? (json['id']?.toString().replaceAll('-', '').substring(0, 8).toUpperCase())
+          ?? '',
       status: json['status'] ?? 'PENDING',
       // Spring Boot: table number is nested under `table.tableNumber`
       // NestJS: flat `tableNumber` field at the top level

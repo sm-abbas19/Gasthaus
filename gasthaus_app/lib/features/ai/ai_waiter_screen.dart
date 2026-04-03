@@ -171,23 +171,32 @@ class _AiWaiterScreenState extends State<AiWaiterScreen> {
       padding: const EdgeInsets.fromLTRB(20, 40, 20, 20),
       child: Column(
         children: [
-          // Amber-tinted card with sparkle icon and welcome text
+          // Clean white card — no amber fill, just a subtle border
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(28),
+            padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
             decoration: BoxDecoration(
-              color: AppColors.primaryLighter,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.primaryBorder),
+              border: Border.all(color: AppColors.border),
             ),
             child: Column(
               children: [
-                const Icon(Icons.room_service,
-                    size: 48, color: AppColors.primary),
-                const SizedBox(height: 14),
+                // Icon in a small amber circle rather than a bare icon
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.room_service,
+                      size: 26, color: Colors.white),
+                ),
+                const SizedBox(height: 16),
                 Text(
                   'Guten Tag! I\'m Gustav.',
-                  style: AppTextStyles.screenTitle.copyWith(fontSize: 18),
+                  style: AppTextStyles.screenTitle.copyWith(fontSize: 17),
                 ),
                 const SizedBox(height: 8),
                 Text(

@@ -2,6 +2,7 @@ package com.gasthaus.entity;
 
 import com.gasthaus.entity.enums.OrderStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -124,4 +125,20 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<Review> reviews = new ArrayList<>();
+
+    /**
+     * A short display identifier derived from the UUID — first 8 hex characters,
+     * upper-cased (e.g. "A1B2C3D4"). Consistent across all clients (Flutter app,
+     * dashboard Kanban, modal, reviews page) so staff and customers always see the
+     * same reference string.
+     *
+     * @Transient: not a DB column — computed on every serialisation.
+     * @JsonProperty("orderNumber"): serialised as "orderNumber" so the existing
+     * frontend code (which already reads order.orderNumber) picks it up without changes.
+     */
+    @Transient
+    @JsonProperty("orderNumber")
+    public String getDisplayOrderNumber() {
+        return id != null ? id.toString().replace("-", "").substring(0, 8).toUpperCase() : null;
+    }
 }

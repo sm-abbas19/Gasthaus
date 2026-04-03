@@ -103,8 +103,8 @@ export default function OrderDetailModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB] shrink-0">
           <div>
             <p className="text-[10px] font-bold text-[#9CA3AF] uppercase tracking-widest">Order Details</p>
-            <h2 className="text-base font-bold text-[#1C1C1E] mt-0.5">
-              {loading ? '…' : `#${order?.id.slice(0, 8).toUpperCase()}`}
+            <h2 className="text-base font-bold text-[#1C1C1E] mt-0.5 font-mono tracking-wide">
+              {loading ? '…' : (order?.orderNumber ? `#${order.orderNumber}` : `#${order?.id.replace(/-/g, '').slice(0, 8).toUpperCase()}`)}
             </h2>
           </div>
           <button

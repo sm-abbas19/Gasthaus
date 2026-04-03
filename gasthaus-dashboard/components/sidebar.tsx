@@ -43,20 +43,23 @@ export default function Sidebar() {
   const role = user?.role ?? 'Manager'
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[240px] bg-[#78350F] z-50 flex flex-col py-8">
+    <aside className="fixed left-0 top-0 h-full w-[240px] bg-[#78350F] z-50 flex flex-col pt-6 pb-5">
       {/* Brand */}
-      <div className="px-6 mb-10 flex items-center gap-3">
-        <UtensilsCrossed size={22} className="text-white shrink-0" />
+      <div className="px-5 flex items-center gap-2.5">
+        <UtensilsCrossed size={17} className="text-white/80 shrink-0" />
         <span
-          className="text-white font-semibold uppercase"
-          style={{ fontSize: 13, letterSpacing: '0.3em' }}
+          className="text-white font-semibold uppercase tracking-[0.28em]"
+          style={{ fontSize: 11 }}
         >
           GASTHAUS
         </span>
       </div>
 
+      {/* Hairline below brand */}
+      <div className="mx-5 mt-5 mb-3 h-px bg-white/10" />
+
       {/* Nav */}
-      <nav className="flex-1 space-y-0.5 px-3">
+      <nav className="flex-1 space-y-px px-3 overflow-y-auto">
         {navItems.map(({ label, href, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + '/')
           return (
@@ -64,13 +67,13 @@ export default function Sidebar() {
               key={href}
               href={href}
               className={[
-                'flex items-center gap-3 px-3 py-2.5 rounded text-[13px] transition-colors',
+                'flex items-center gap-3 px-3 py-[7px] rounded-md text-[12.5px] font-medium transition-all',
                 active
-                  ? 'bg-white/20 text-white border-l-2 border-white pl-[10px]'
-                  : 'text-white/70 hover:text-white hover:bg-white/10 border-l-2 border-transparent pl-[10px]',
+                  ? 'bg-white/10 text-white border-l-2 border-white/80 pl-[10px]'
+                  : 'text-white/55 hover:text-white/85 hover:bg-white/6 border-l-2 border-transparent pl-[10px]',
               ].join(' ')}
             >
-              <Icon size={17} className="text-current" />
+              <Icon size={15} className="text-current shrink-0" />
               <span>{label}</span>
             </Link>
           )
@@ -78,25 +81,25 @@ export default function Sidebar() {
       </nav>
 
       {/* User + Logout */}
-      <div className="mt-auto mx-3 pt-6 border-t border-white/20">
-        <div className="flex items-center gap-3 px-3">
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+      <div className="mx-3 pt-3 border-t border-white/10">
+        <div className="flex items-center gap-2.5 px-3">
+          <div className="w-7 h-7 rounded-full bg-white/15 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
             {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-white text-[13px] font-medium truncate">
+            <p className="text-white text-[12px] font-medium truncate leading-tight">
               {user?.name ?? 'Admin'}
             </p>
-            <p className="text-white/70 text-[11px] capitalize">
+            <p className="text-white/50 text-[10px] capitalize leading-tight mt-0.5">
               {role.toString().charAt(0) + role.toString().slice(1).toLowerCase()}
             </p>
           </div>
           <button
             onClick={handleLogout}
             title="Log out"
-            className="text-white/70 hover:text-white transition-colors shrink-0"
+            className="text-white/50 hover:text-white transition-colors shrink-0"
           >
-            <LogOut size={16} />
+            <LogOut size={14} />
           </button>
         </div>
       </div>

@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../core/models/order.dart';
+import '../../core/models/review.dart';
+import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../reviews/write_review_sheet.dart';
@@ -190,26 +192,32 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  void _openReviewSheet(BuildContext context, Order order) {
-    // showModalBottomSheet displays a sheet that slides up from the bottom,
-    // with the rest of the screen dimmed. isScrollControlled: true lets the
-    // sheet grow taller than 50% of the screen height.
-    // We iterate each item in the order so the customer can review any of them.
-    if (order.items.isEmpty) return;
+  // _openReviewSheet checks whether the order has already been reviewed.
+  // If yes → opens the sheet in read-only mode showing the existing review.
+  // If no  → opens the sheet in write mode so the customer can submit.
+  //
+  // We hit GET /reviews/order/:id first (one small request) rather than loading
+  // review state into OrdersProvider, which keeps the provider focused on orders.
+  Future<void> _openReviewSheet(BuildContext context, Order order) async {
+    // Show a brief loading indicator on the button tap
+    // (the ScaffoldMessenger snackbar approach would be too noisy here).
+    Review? existing;
+    try {
+      final res = await ApiService.instance.dio.get('/reviews/order/${order.id}');
+      final list = res.data as List<dynamic>;
+      if (list.isNotEmpty) {
+        existing = Review.fromJson(list.first as Map<String, dynamic>);
+      }
+    } catch (_) {
+      // Network error — just open write mode; the server will reject duplicates.
+    }
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      // backgroundColor transparent so our sheet's own decoration shows
-      backgroundColor: Colors.transparent,
-      builder: (_) => WriteReviewSheet(
-        // For simplicity, open review for the first item in the order.
-        // A more complete UX would let the user pick which item to review.
-        menuItemId: order.items.first.menuItemId,
-        menuItemName: order.items.first.menuItemName,
-        menuItemImage: order.items.first.menuItemImage,
-        orderId: order.id,
-      ),
+    if (!context.mounted) return;
+
+    showOrderReviewSheet(
+      context,
+      order: order,
+      existingReview: existing,
     );
   }
 }
@@ -353,7 +361,9 @@ class _OrderCard extends StatelessWidget {
   final DateFormat dateFmt;
   final NumberFormat currencyFmt;
   final VoidCallback onTrack;
-  final VoidCallback onReview;
+  // Async because it first fetches existing reviews before opening the sheet.
+  // Using Future<void> Function() instead of VoidCallback allows async lambdas.
+  final Future<void> Function() onReview;
 
   const _OrderCard({
     required this.order,
@@ -388,7 +398,10 @@ class _OrderCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Order #${order.orderNumber}',
+                        // orderNumber is the 8-char uppercase UUID prefix (e.g. "A1B2C3D4")
+                        // returned by the Spring Boot @Transient getter, consistent across
+                        // all clients.
+                        '#${order.orderNumber}',
                         style: AppTextStyles.itemName,
                       ),
                       const SizedBox(height: 4),
