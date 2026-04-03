@@ -117,3 +117,82 @@ CLAUDE.md, always prefer this CLAUDE.md. Key overrides:
 - 1px solid #E5E7EB borders ARE used on cards
 - Branding is "GASTHAUS" not "The Modern Archivist"
 - 3-column grids are acceptable (menu page uses them)
+
+
+---
+
+## Spring Boot Backend (gasthaus-backend-java/)
+
+This is a Java/Spring Boot reimplementation of the NestJS 
+backend for learning and interview preparation. It is 
+functionally identical to gasthaus-backend/ but uses 
+Java enterprise patterns.
+
+### Tech Stack
+- Java 21
+- Spring Boot 3.x
+- Spring Data JPA + Hibernate (replaces Prisma)
+- Spring Security + JWT (replaces NestJS Guards)
+- Maven (dependency management)
+- Spring WebSocket + STOMP (replaces Socket.io)
+- Bean Validation (replaces class-validator DTOs)
+- Same PostgreSQL database (port 5432, different schema prefix)
+- Same Docker containers from gasthaus-backend/docker-compose.yml
+
+### Port
+Runs on port 8080 (NestJS runs on 3001, no conflict)
+
+### Learning Goal
+Understand every line — not just make it work.
+Claude should explain each Spring/Java concept as it 
+writes it, comparing it to the NestJS equivalent 
+where relevant.
+
+### NestJS → Spring Boot Mapping
+- @Module → @Configuration / @SpringBootApplication
+- @Injectable → @Service
+- @Controller → @RestController
+- PrismaService → JpaRepository<Entity, UUID>
+- @UseGuards(JwtAuthGuard) → Spring Security filter chain
+- @Roles() decorator → @PreAuthorize("hasRole('MANAGER')")
+- ValidationPipe + class-validator → @Valid + Bean Validation
+- Socket.io gateway → @MessageMapping + SimpMessagingTemplate
+- NestJS pipes → Spring @ControllerAdvice + @ExceptionHandler
+
+### Build Order (Phases)
+Phase 1: Project setup + JPA entities (models)
+Phase 2: Repository layer + Database config
+Phase 3: JWT Security config + Auth endpoints
+Phase 4: Menu endpoints
+Phase 5: Orders + WebSocket
+Phase 6: Reviews + Tables
+Phase 7: AI proxy (calls FastAPI same as NestJS version)
+
+---
+
+## Bug Fixes Log
+
+All bugs fixed in this project are documented in `bug_fixes.md` at the repo root.
+
+**Policy:** whenever a bug is fixed, add an entry to `bug_fixes.md` with:
+- A short ID (BF-001, BF-002, …)
+- The file(s) changed
+- **What** the bug was (symptom)
+- **Why** it happened (root cause)
+- **Fix** summary (what changed and why it works)
+
+This log is append-only — never remove or edit existing entries.
+
+---
+
+## Code Comments Policy (Flutter App)
+
+The user is studying Flutter and Dart through this project.
+**Always add inline comments to all Flutter/Dart code** explaining:
+- What the code does
+- Why this approach was chosen (e.g. why `ChangeNotifier` vs alternatives)
+- Flutter/Dart-specific concepts that may be unfamiliar (e.g. `BuildContext`, `initState`, `didChangeDependencies`)
+- Comparisons to equivalent patterns in other languages/frameworks where helpful
+
+Comments should be educational, not just descriptive. Assume the reader knows
+programming but is new to Flutter. This applies to every file in `gasthaus_app/`.

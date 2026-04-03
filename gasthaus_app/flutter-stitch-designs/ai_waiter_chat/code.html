@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gasthaus AI Waiter</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#8d4b00",
+              "error-container": "#ffdad6",
+              "tertiary": "#006096",
+              "on-surface-variant": "#554336",
+              "on-error-container": "#93000a",
+              "surface": "#f9f9f7",
+              "inverse-on-surface": "#f1f1ef",
+              "error": "#ba1a1a",
+              "on-primary-container": "#fffbff",
+              "background": "#f9f9f7",
+              "tertiary-fixed": "#cee5ff",
+              "surface-bright": "#f9f9f7",
+              "primary-fixed": "#ffdcc3",
+              "primary-container": "#b15f00",
+              "outline-variant": "#dbc2b0",
+              "primary-fixed-dim": "#ffb77d",
+              "on-secondary-container": "#784c25",
+              "on-background": "#1a1c1b",
+              "on-primary": "#ffffff",
+              "outline": "#887364",
+              "on-tertiary-fixed": "#001d32",
+              "on-error": "#ffffff",
+              "inverse-surface": "#2f3130",
+              "surface-dim": "#dadad8",
+              "secondary-container": "#fdbf8f",
+              "on-tertiary-fixed-variant": "#004a75",
+              "tertiary-container": "#007abd",
+              "surface-tint": "#904d00",
+              "on-surface": "#1a1c1b",
+              "surface-container-highest": "#e2e3e1",
+              "on-secondary": "#ffffff",
+              "on-primary-fixed-variant": "#6e3900",
+              "surface-container": "#eeeeec",
+              "surface-container-low": "#f4f4f2",
+              "secondary-fixed-dim": "#f7ba8a",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-high": "#e8e8e6",
+              "secondary-fixed": "#ffdcc3",
+              "on-secondary-fixed-variant": "#673d17",
+              "secondary": "#82542c",
+              "on-primary-fixed": "#2f1500",
+              "inverse-primary": "#ffb77d",
+              "tertiary-fixed-dim": "#96ccff",
+              "surface-variant": "#e2e3e1",
+              "on-secondary-fixed": "#2f1500",
+              "on-tertiary": "#ffffff",
+              "on-tertiary-container": "#fdfcff"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar Shared Component Execution -->
+<header class="flex items-center justify-between px-5 h-16 w-full fixed top-0 z-50 bg-[#1C1C1E]">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-amber-500" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h1 class="font-['Inter'] font-bold text-lg tracking-tight text-white">AI Waiter</h1>
+</div>
+<button class="text-gray-400 hover:opacity-80 transition-opacity active:scale-95 duration-150">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-16 mb-32 px-5 py-8 overflow-y-auto no-scrollbar flex flex-col gap-8">
+<!-- Welcome Banner (Empty State) -->
+<section class="flex flex-col items-center justify-center text-center animate-in fade-in duration-500">
+<div class="bg-amber-50 border border-amber-200 p-8 rounded-xl max-w-sm w-full mb-6">
+<div class="mb-4 flex justify-center">
+<span class="material-symbols-outlined text-[48px] text-[#D97706]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<h2 class="text-lg font-bold text-on-background mb-2">Ask me anything!</h2>
+<p class="text-sm text-on-surface-variant leading-relaxed">
+                    I can help you choose dishes based on your mood, dietary needs, or cravings.
+                </p>
+</div>
+<!-- Suggestion Chips -->
+<div class="flex flex-wrap justify-center gap-3">
+<button class="bg-surface-container-lowest border border-outline-variant/20 px-4 py-2 rounded-xl text-[13px] text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors">
+                    What's popular?
+                </button>
+<button class="bg-surface-container-lowest border border-outline-variant/20 px-4 py-2 rounded-xl text-[13px] text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors">
+                    I'm vegetarian
+                </button>
+<button class="bg-surface-container-lowest border border-outline-variant/20 px-4 py-2 rounded-xl text-[13px] text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors">
+                    Something spicy
+                </button>
+</div>
+</section>
+<!-- Chat History (Editorial Asymmetry) -->
+<div class="space-y-10">
+<!-- User Message -->
+<div class="flex flex-col items-end w-full">
+<div class="max-w-[75%] bg-[#D97706] text-white p-4 rounded-[16px] rounded-br-[4px]">
+<p class="text-[15px] leading-relaxed">Can you recommend a hearty pasta for a cold evening?</p>
+</div>
+</div>
+<!-- AI Message -->
+<div class="flex flex-col items-start w-full">
+<div class="flex items-center gap-1.5 mb-2 ml-1">
+<span class="material-symbols-outlined text-[12px] text-gray-400" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="text-[11px] font-bold uppercase tracking-wider text-gray-400">AI Waiter</span>
+</div>
+<div class="max-w-[85%] bg-surface-container-lowest border border-outline-variant/20 p-4 rounded-[16px] rounded-bl-[4px]">
+<p class="text-[14px] text-on-background leading-relaxed mb-4">For a cold evening, I highly recommend our <b>Wild Mushroom Tagliatelle</b>. It features a rich, creamy sauce with truffle oil and locally sourced porcini mushrooms. It's the ultimate comfort dish!</p>
+<div class="rounded-xl overflow-hidden mb-2">
+<img alt="Creamy mushroom pasta" class="w-full h-40 object-cover" data-alt="Close-up of a rustic bowl of creamy mushroom tagliatelle pasta with fresh herbs and parmesan shavings on a dark wooden table" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmDm6gFRi1G-7d174yosYz2eTsLfN4BAR6ACB1J0rrM3lDTdcYcKEPdpBltYOVKgbGtWOv5yjhr04WTOAsLfLpjqSZaYHxrghcdwCzCSPgMvH47QnsVmYHSO9jzJpZ_jitXwJQ-uzLIrtlJkx5gDTIdJ7agQTele_iOePLW8j_Yd4vdAgTQ-G6xLbdj7jHWmKLGoBZqnNtoMZQtQINhpLHK23lmEZEUIKUc3akjiL8t8_mJrdEB9X1kNqub_aLc9NXPTzwHh3Nyw"/>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Chat Input Area -->
+<div class="fixed bottom-20 left-0 w-full bg-white border-t border-outline-variant/20 px-5 py-4 z-40">
+<div class="flex items-center gap-3 max-w-4xl mx-auto">
+<div class="flex-1 bg-surface-container-lowest border border-outline-variant/20 rounded-[10px] h-11 px-4 flex items-center">
+<input class="w-full bg-transparent border-none focus:ring-0 text-[14px] text-on-background placeholder:text-gray-400" placeholder="Ask about the menu…" type="text"/>
+</div>
+<button class="bg-[#D97706] text-white h-11 w-11 rounded-full flex items-center justify-center transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[20px]">send</span>
+</button>
+</div>
+</div>
+<!-- BottomNavBar Shared Component Execution -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-2 bg-[#F9F9F7] dark:bg-[#1A1C1B] border-t border-black/5">
+<!-- Menu Tab -->
+<div class="flex flex-col items-center justify-center text-[#554336] dark:text-gray-400 opacity-60 hover:text-[#D97706] transition-colors">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-[0.08em]">Menu</span>
+</div>
+<!-- Reservations Tab -->
+<div class="flex flex-col items-center justify-center text-[#554336] dark:text-gray-400 opacity-60 hover:text-[#D97706] transition-colors">
+<span class="material-symbols-outlined" data-icon="event_available">event_available</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-[0.08em]">Reservations</span>
+</div>
+<!-- AI Waiter Tab (ACTIVE) -->
+<div class="flex flex-col items-center justify-center text-[#D97706] bg-amber-50 dark:bg-amber-900/20 rounded-xl px-3 py-1">
+<span class="material-symbols-outlined" data-icon="smart_toy">smart_toy</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-[0.08em]">AI Waiter</span>
+</div>
+<!-- Profile Tab -->
+<div class="flex flex-col items-center justify-center text-[#554336] dark:text-gray-400 opacity-60 hover:text-[#D97706] transition-colors">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] font-bold text-[10px] uppercase tracking-[0.08em]">Profile</span>
+</div>
+</nav>
+</body></html>

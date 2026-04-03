@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        Spring Boot Parent POM — like package.json's "extends" in NestJS.
+        It manages ALL dependency versions for us: no version conflicts.
+        We inherit plugin config (compiler, test runner, packaging) for free.
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/>
+    </parent>
+
+    <!-- Maven coordinates: groupId + artifactId + version = unique artifact identity -->
+    <groupId>com.gasthaus</groupId>
+    <artifactId>gasthaus-backend-java</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>gasthaus-backend-java</name>
+    <description>Spring Boot reimplementation of the Gasthaus NestJS backend</description>
+
+    <properties>
+        <!-- Java 21 LTS — virtual threads, records, pattern matching -->
+        <java.version>21</java.version>
+        <!-- JJWT version pinned here so all 3 jjwt artifacts stay in sync -->
+        <jjwt.version>0.12.3</jjwt.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ═══════════════════════════════════════════
+             WEB LAYER
+             NestJS equivalent: @nestjs/common + @nestjs/platform-express
+             Brings in: Tomcat, Jackson (JSON), Spring MVC
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             DATABASE / ORM LAYER
+             NestJS equivalent: @nestjs/typeorm OR prisma
+             Brings in: Hibernate 6, Spring Data JPA, HikariCP connection pool
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- PostgreSQL JDBC driver — like the pg npm package -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+            <!-- scope=runtime: needed at runtime but not compile time.
+                 We never import PostgreSQL classes directly — JPA abstracts it. -->
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             SECURITY LAYER
+             NestJS equivalent: @nestjs/passport + passport-jwt + bcrypt
+             Brings in: Spring Security filters, password encoding, CSRF, CORS config
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             WEBSOCKET
+             NestJS equivalent: @nestjs/websockets + socket.io
+             Spring uses STOMP over WebSocket (not Socket.io protocol).
+             The frontend would need a STOMP client instead of socket.io-client
+             for a pure Spring setup, but we can also expose a raw WS endpoint.
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-websocket</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             VALIDATION
+             NestJS equivalent: class-validator + class-transformer + ValidationPipe
+             Brings in: Hibernate Validator (Bean Validation 3.0 / Jakarta EE)
+             Use @Valid on controller params to trigger validation of @NotNull,
+             @Size, @Email etc. annotations on DTO fields.
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             JWT — jjwt library (3 artifacts, always version-locked together)
+             NestJS equivalent: @nestjs/jwt + jsonwebtoken
+             - jjwt-api:    compile-time interfaces (what you write against)
+             - jjwt-impl:   runtime implementation (the actual JWT logic)
+             - jjwt-jackson: Jackson adapter for JSON serialization of claims
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             LOMBOK — compile-time code generation
+             NestJS equivalent: none needed (TypeScript is flexible)
+             Generates boilerplate: getters, setters, constructors, builders,
+             toString, equals/hashCode via annotations processed at compile time.
+             Must be in <provided> or <annotationProcessorPaths> scope.
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+            <!-- optional=true: downstream projects don't inherit this dep.
+                 Lombok is only needed at compile time, not at runtime. -->
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             CACHING + REDIS
+             NestJS equivalent: @nestjs/cache-manager + cache-manager-redis-store
+             spring-boot-starter-data-redis brings in Lettuce (the default Redis client).
+             spring-boot-starter-cache provides the @Cacheable / @CacheEvict abstractions.
+             With Redis on the classpath and spring.cache.type=redis, Spring auto-configures
+             RedisCacheManager — no manual wiring needed. The same @Cacheable annotations
+             in MenuService work unchanged; Spring just stores entries in Redis instead of
+             an in-memory map. This mirrors how NestJS swaps the cache store via the
+             CacheModule.register({ store: redisStore }) option.
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+            <!--
+                Lettuce is included by default — a non-blocking Redis client backed by Netty.
+                NestJS uses ioredis under the hood for cache-manager-redis-store.
+                Both are async, connection-pooled Redis clients.
+            -->
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             QRCODE — generates QR code images for table creation
+             NestJS equivalent: the `qrcode` npm package (QRCode.toDataURL)
+             ZXing (Zebra Crossing) is the standard Java QR library.
+             core = encoding/decoding logic
+             javase = MatrixToImageWriter for PNG output
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>javase</artifactId>
+            <version>3.5.3</version>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             CLOUDINARY — image upload for menu items
+             NestJS equivalent: cloudinary npm package (v2 as cloudinary)
+             cloudinary-http45 uses Apache HttpClient 4.5 internally.
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http45</artifactId>
+            <version>1.36.0</version>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════
+             TESTING
+             Brought in automatically — JUnit 5, Mockito, AssertJ, MockMvc
+             ═══════════════════════════════════════════ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!--
+                Spring Boot Maven Plugin — like ts-node or webpack for NestJS builds.
+                - mvn spring-boot:run  → starts the dev server
+                - mvn package         → builds a fat JAR (all deps bundled)
+                - excludes Lombok from the final JAR (only needed at compile time)
+            -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

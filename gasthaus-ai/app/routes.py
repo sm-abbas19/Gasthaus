@@ -1,18 +1,24 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Header
 from app.models import (
     RecommendRequest, RecommendResponse,
     InsightsRequest, InsightsResponse,
     ReviewSummaryRequest, ReviewSummaryResponse,
 )
 from app.database import ai_sessions_collection
-from app.config import GEMINI_API_KEY
+from app.config import GEMINI_API_KEY, AI_INTERNAL_KEY
 from google import genai
 from google.genai import types
 from datetime import datetime
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
-router = APIRouter()
+
+def verify_internal_key(x_internal_key: str = Header(...)):
+    if x_internal_key != AI_INTERNAL_KEY:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+
+router = APIRouter(dependencies=[Depends(verify_internal_key)])
 
 
 # ─── Helper ───────────────────────────────────────
@@ -46,30 +52,36 @@ async def recommend(req: RecommendRequest):
                     )
                 )
 
-        # System prompt with menu context
+        # System prompt passed as system_instruction — kept separate from user turn
+        # This prevents user message from overriding or leaking the system context
         menu_text = format_menu(req.menuItems)
-        system_prompt = f"""You are a friendly AI waiter for Gasthaus restaurant.
-Your job is to help customers choose what to order based on their preferences.
-Always recommend specific items from the menu below and explain why they match.
+        system_instruction = f"""You are Gustav, a menu assistant for Gasthaus restaurant.
+Your personality is warm, knowledgeable, and subtly German — occasionally use light German phrases like "Wunderbar!" or "Sehr gut!" but keep it natural, not overdone.
+Your ONLY job is to help customers decide what to order by recommending items from the menu based on their preferences.
+You are NOT a waiter. You cannot place, confirm, or accept orders. You have no access to the ordering system.
+When a customer says something like "I'll have X" or "order X for me", do NOT say things like "order placed", "coming right up", or "confirmed". Instead, clarify that they need to add it to their cart in the app and place the order themselves.
+Always recommend specific items from the menu below and explain why they match the customer's preferences.
 Keep responses concise and conversational.
 If asked about something not on the menu, politely redirect to available items.
 
 Current Menu:
 {menu_text}"""
 
-        # Add current user message
-        full_message = f"{system_prompt}\n\nCustomer: {req.message}"
+        # Add current user message as its own turn (not mixed with system context)
         contents.append(
             types.Content(
                 role="user",
-                parts=[types.Part(text=full_message)]
+                parts=[types.Part(text=req.message)]
             )
         )
 
-        # Call Gemini
+        # Call Gemini with system_instruction separate from conversation contents
         response = client.models.generate_content(
             model="gemini-3.1-flash-lite-preview",
             contents=contents,
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+            ),
         )
         reply = response.text
 
@@ -110,25 +122,28 @@ Current Menu:
 async def insights(req: InsightsRequest):
     try:
         top_items_text = "\n".join(
-            [f"- {item['name']}: {item['orders']} orders" for item in req.topItems]
-        )
+            [f"- {item['name']}: {item.get('count', item.get('orders', 0))} orders" for item in req.topItems]
+        ) if req.topItems else "No data"
         complaints_text = (
             "\n".join([f"- {c}" for c in req.complaints])
             if req.complaints
             else "No complaints recorded"
         )
 
-        prompt = f"""You are a restaurant analytics assistant for Gasthaus.
-Analyze today's performance data and give a concise, actionable insight paragraph.
-Be specific, practical, and highlight both positives and areas for improvement.
+        period_label = {"today": "Today", "week": "This Week", "month": "This Month"}.get(req.period, "Today")
 
-Today's Data:
+        prompt = f"""You are a restaurant analytics assistant for Gasthaus.
+Analyze the performance data for {period_label} and give a concise, actionable insight paragraph.
+Be specific and factual — only reference what is present in the data below. Do not exaggerate, infer patterns, or use words like "recurring" or "consistent" unless multiple complaints say the same thing.
+Highlight both positives and areas for improvement based strictly on the numbers provided.
+
+Performance Data ({period_label}):
 - Total Orders: {req.totalOrders}
 - Total Revenue: Rs. {req.totalRevenue}
 - Busiest Hour: {req.busiestHour or "Not recorded"}
 - Top Selling Items:
 {top_items_text}
-- Customer Complaints:
+- Customer Complaints ({len(req.complaints) if req.complaints else 0} total):
 {complaints_text}
 
 Write a 3-4 sentence insight summary for the manager."""

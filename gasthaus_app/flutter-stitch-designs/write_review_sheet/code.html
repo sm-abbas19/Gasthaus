@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Write Review - Gasthaus</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-secondary": "#ffffff",
+              "primary-fixed": "#ffdcc3",
+              "secondary-fixed": "#ffdcc3",
+              "surface-container-low": "#f4f4f2",
+              "on-tertiary": "#ffffff",
+              "on-error": "#ffffff",
+              "outline": "#887364",
+              "on-primary-fixed-variant": "#6e3900",
+              "inverse-primary": "#ffb77d",
+              "on-tertiary-fixed-variant": "#004a75",
+              "tertiary": "#006096",
+              "on-surface": "#1a1c1b",
+              "tertiary-container": "#007abd",
+              "on-primary-fixed": "#2f1500",
+              "secondary": "#82542c",
+              "on-tertiary-fixed": "#001d32",
+              "background": "#f9f9f7",
+              "tertiary-fixed-dim": "#96ccff",
+              "surface-container-highest": "#e2e3e1",
+              "surface-container": "#eeeeec",
+              "surface-container-lowest": "#ffffff",
+              "secondary-fixed-dim": "#f7ba8a",
+              "outline-variant": "#dbc2b0",
+              "error-container": "#ffdad6",
+              "surface-dim": "#dadad8",
+              "primary-fixed-dim": "#ffb77d",
+              "on-primary": "#ffffff",
+              "on-secondary-fixed": "#2f1500",
+              "on-background": "#1a1c1b",
+              "on-error-container": "#93000a",
+              "primary": "#8d4b00",
+              "on-secondary-container": "#784c25",
+              "inverse-on-surface": "#f1f1ef",
+              "on-secondary-fixed-variant": "#673d17",
+              "on-tertiary-container": "#fdfcff",
+              "on-primary-container": "#fffbff",
+              "error": "#ba1a1a",
+              "surface": "#f9f9f7",
+              "surface-container-high": "#e8e8e6",
+              "secondary-container": "#fdbf8f",
+              "primary-container": "#b15f00",
+              "inverse-surface": "#2f3130",
+              "surface-variant": "#e2e3e1",
+              "on-surface-variant": "#554336",
+              "surface-bright": "#f9f9f7",
+              "tertiary-fixed": "#cee5ff",
+              "surface-tint": "#904d00"
+            },
+            fontFamily: {
+              "headline": ["Inter"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-star {
+            font-variation-settings: 'FILL' 1;
+        }
+        .bottom-sheet-shadow {
+            box-shadow: 0 -10px 40px -10px rgba(0,0,0,0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body text-on-surface">
+<!-- Background Content (Simulated Dashboard) -->
+<main class="min-h-screen pb-24">
+<header class="bg-[#F9F9F7] flex justify-between items-center px-5 w-full h-16">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+<h1 class="font-headline font-bold tracking-tight text-[#1A1C1B] text-lg">Review</h1>
+<div class="w-6"></div>
+</header>
+<section class="px-5 mt-8 space-y-10">
+<!-- Review Content Placeholder -->
+<div class="space-y-6">
+<div class="flex items-center gap-4">
+<img class="w-20 h-20 rounded-xl object-cover" data-alt="Close-up of a vibrant artisanal burrata salad with heirloom tomatoes, fresh basil leaves, and balsamic glaze on a white plate" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9JS_ATHgAWughxgnChbXbfnOgdJ7KrgG53HJk9X7MvaqXEJ5jQJRqk_vrq7qHrHmwX3Lq2XEZRZCH2p4aqCU7aPkJhe6efrmWZluc_HC5qu5K1hwjlu7Zz2pFYqG1BHZgh3dDI8eFabr33fjeeTsr2ISSu7W8TjBzcPHuewzYon3N2OQPtdYYoYtPdBMchJc8aYHLR-zty6x_Rcy05uNUReXA3zJratCRF1HfkULlMNtPD5aehfnmBLXc9pkeSzunZgGb_3Wkfw"/>
+<div>
+<h2 class="text-xl font-bold">Artisanal Burrata Salad</h2>
+<p class="text-on-surface-variant text-sm">Gasthaus Signature Menu</p>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-6 rounded-xl space-y-4">
+<p class="italic text-on-surface-variant">"The creaminess of the burrata paired with the heirloom tomatoes is simply unmatched. A perfect starter for any meal."</p>
+<div class="flex gap-1 text-primary">
+<span class="material-symbols-outlined filled-star">star</span>
+<span class="material-symbols-outlined filled-star">star</span>
+<span class="material-symbols-outlined filled-star">star</span>
+<span class="material-symbols-outlined filled-star">star</span>
+<span class="material-symbols-outlined">star</span>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 bg-black/40 z-[60] flex items-end">
+<!-- Bottom Sheet -->
+<div class="bg-surface-container-lowest w-full h-[70%] rounded-t-[20px] bottom-sheet-shadow flex flex-col relative">
+<!-- Drag Handle -->
+<div class="flex justify-center pt-3 pb-5">
+<div class="w-10 h-1 bg-[#E2E3E1] rounded-full"></div>
+</div>
+<div class="px-5 flex-1 overflow-y-auto">
+<!-- Header -->
+<div class="mb-8">
+<h2 class="text-[20px] font-bold text-[#111827]">Leave a Review</h2>
+<p class="text-[14px] text-[#6B7280]">Artisanal Burrata Salad</p>
+</div>
+<!-- Star Rating Section -->
+<div class="flex flex-col items-center mb-10">
+<div class="flex gap-2 mb-2">
+<span class="material-symbols-outlined text-[36px] text-[#D97706] filled-star" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[36px] text-[#D97706] filled-star" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[36px] text-[#D97706] filled-star" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[36px] text-[#D97706] filled-star" data-icon="star">star</span>
+<span class="material-symbols-outlined text-[36px] text-[#E5E7EB]" data-icon="star">star</span>
+</div>
+<span class="text-[14px] text-[#6B7280] font-medium">Excellent</span>
+</div>
+<!-- Input Field -->
+<div class="space-y-2">
+<label class="text-[11px] font-bold uppercase tracking-[0.08em] text-[#9CA3AF]">YOUR REVIEW</label>
+<div class="relative">
+<textarea class="w-full h-[120px] p-4 text-[13px] text-[#111827] bg-surface-container-lowest border border-[#E5E7EB] rounded-[10px] focus:outline-none focus:ring-1 focus:ring-primary/20 placeholder:text-[#9CA3AF] resize-none" placeholder="Tell others what you think about this dish..."></textarea>
+<span class="absolute bottom-3 right-3 text-[11px] text-[#9CA3AF]">0/500</span>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="mt-10 pb-10">
+<button class="w-full h-[52px] bg-[#D97706] text-white font-bold rounded-[10px] active:scale-[0.98] transition-transform flex items-center justify-center">
+                        Submit Review
+                    </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation (Shared Component Baseline) -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md border-t border-neutral-200/20 shadow-lg rounded-t-3xl">
+<a class="flex flex-col items-center justify-center text-[#554336] p-2 hover:bg-neutral-100 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="restaurant_menu">restaurant_menu</span>
+<span class="font-['Inter'] text-[13px] font-bold uppercase tracking-[0.08em]">Menu</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#554336] p-2 hover:bg-neutral-100 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="receipt_long">receipt_long</span>
+<span class="font-['Inter'] text-[13px] font-bold uppercase tracking-[0.08em]">Orders</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-[#D97706]/10 text-[#D97706] rounded-2xl p-2" href="#">
+<span class="material-symbols-outlined filled-star" data-icon="rate_review">rate_review</span>
+<span class="font-['Inter'] text-[13px] font-bold uppercase tracking-[0.08em]">Reviews</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#554336] p-2 hover:bg-neutral-100 transition-opacity" href="#">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-['Inter'] text-[13px] font-bold uppercase tracking-[0.08em]">Profile</span>
+</a>
+</nav>
+</body></html>

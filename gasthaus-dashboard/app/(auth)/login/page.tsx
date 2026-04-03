@@ -29,10 +29,15 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
-  // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated()) {
       router.replace('/dashboard')
+      return
+    }
+    const flash = sessionStorage.getItem('login_error')
+    if (flash) {
+      setServerError(flash)
+      sessionStorage.removeItem('login_error')
     }
   }, [router])
 
@@ -96,9 +101,9 @@ export default function LoginPage() {
       </section>
 
       {/* ── Right pane 45% ── */}
-      <section className="w-full lg:w-[45%] bg-white flex flex-col justify-between px-12 py-12 md:px-16 lg:px-24">
+      <section className="w-full lg:w-[45%] bg-white flex flex-col justify-between items-center px-8 py-12">
         {/* Wordmark */}
-        <div className="flex items-center gap-3">
+        <div className="max-w-sm w-full flex items-center gap-3">
           <UtensilsCrossed size={20} className="text-[#1C1C1E]" />
           <span
             className="font-semibold text-[#1C1C1E] uppercase"
@@ -109,7 +114,7 @@ export default function LoginPage() {
         </div>
 
         {/* Form area */}
-        <div className="max-w-sm w-full mx-auto lg:mx-0">
+        <div className="max-w-sm w-full">
           <div className="mb-10">
             <h2 className="text-[28px] font-semibold text-[#1C1C1E] tracking-tight mb-2">
               Staff Portal

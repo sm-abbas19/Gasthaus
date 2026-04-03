@@ -102,12 +102,7 @@ const order = await this.prisma.$transaction(async (tx) => {
   return createdOrder;
 });
 
-// 6. Emit WebSocket event to staff dashboard
-this.gateway.emitNewOrder(order);
-
-return order;
-
-    // 7. Emit WebSocket event to staff dashboard
+    // 6. Emit WebSocket event to staff dashboard
     this.gateway.emitNewOrder(order);
 
     return order;

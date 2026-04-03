@@ -1,0 +1,30 @@
+# ── Maven build output ────────────────────────────────────────
+target/
+
+# ── Compiled classes (redundant with target/ but explicit) ────
+*.class
+
+# ── Spring Boot fat JAR ───────────────────────────────────────
+*.jar
+*.war
+
+# ── Local secrets — never commit this file ────────────────────
+# application-local.properties holds DB password, JWT secret,
+# Cloudinary credentials etc. application-local.properties.example
+# is the committed template with placeholder values.
+application-local.properties
+
+# ── IDE ───────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Maven wrapper (optional — uncomment if you use mvnw) ──────
+# .mvn/wrapper/maven-wrapper.jar
