@@ -32,6 +32,21 @@ function inPeriod(dateStr: string, period: 'today' | 'week' | 'month'): boolean 
   return new Date(dateStr) >= startOf(period)
 }
 
+function startOfThreeDayWindow(): Date {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - 2)
+  return d
+}
+
+function inLastThreeDaysInclusive(dateStr: string): boolean {
+  return new Date(dateStr) >= startOfThreeDayWindow()
+}
+
+function formatReviewDate(dateStr: string): string {
+  return new Date(dateStr).toISOString().slice(0, 10)
+}
+
 // ── page ───────────────────────────────────────────────────────────────────
 
 // Auto-generate once per tab session — survives navigation but not tab close
@@ -75,6 +90,13 @@ export default function InsightsPage() {
     )
     return Math.round(totalMs / served.length / 60_000)
   }, [periodOrders])
+
+  // For AI insights we only consider reviews from today + previous 2 days.
+  // This keeps the prompt focused on recent customer feedback, not stale data.
+  const recentReviewsForInsights = useMemo(
+    () => reviews.filter((r) => inLastThreeDaysInclusive(r.createdAt)),
+    [reviews],
+  )
 
   // ── hourly orders chart (today's orders by hour) ──────────────────────
   const hourlyData = useMemo(() => {
@@ -141,9 +163,9 @@ export default function InsightsPage() {
         avgOrderValue: Math.round(avgOrderValue),
         avgRating:     parseFloat(avgRating.toFixed(1)),
         topItems:      topItems.slice(0, 5).map((i) => ({ name: i.name, count: i.count })),
-        complaints:    reviews
+        complaints:    recentReviewsForInsights
           .filter((r) => r.rating <= 2 && r.comment)
-          .map((r) => r.comment as string)
+          .map((r) => `[${formatReviewDate(r.createdAt)}] ${r.comment as string}`)
           .slice(0, 5),
       })
       const data = res.data

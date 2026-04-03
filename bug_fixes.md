@@ -313,3 +313,43 @@ Application code was updated correctly (`Review.menuItem` nullable, request no l
 - Applied the SQL fix to the current local DB immediately:
   `ALTER TABLE gasthaus_java.reviews ALTER COLUMN menu_item_id DROP NOT NULL;`
 
+---
+
+## BF-015 — Legacy item-based unique constraint left behind after order-level migration
+
+**Files:** `gasthaus-backend-java/src/main/java/com/gasthaus/config/SchemaCompatibilityMigration.java`
+
+**Date:** 2026-04-03
+
+### What
+After moving reviews to order-level, the database still contained the old unique constraint
+`uk_review_customer_item_order (customer_id, menu_item_id, order_id)`.
+
+### Why
+The migration to order-level added the new unique key (`customer_id`, `order_id`) but did not remove the obsolete item-level key. It did not break inserts directly, but it kept stale schema state and could confuse future maintenance.
+
+### Fix
+- Extended `SchemaCompatibilityMigration` to detect and drop `uk_review_customer_item_order` if present.
+- Applied the cleanup SQL immediately in local DB:
+  `ALTER TABLE gasthaus_java.reviews DROP CONSTRAINT IF EXISTS uk_review_customer_item_order;`
+- Verified remaining UNIQUE constraint on `reviews` is now only `uk_review_customer_order`.
+
+---
+
+## BF-016 — Kitchen fullscreen screen had no way back to dashboard home
+
+**Files:** `gasthaus-dashboard/app/(fullscreen)/kitchen/page.tsx`
+
+**Date:** 2026-04-03
+
+### What
+Once users entered the fullscreen kitchen screen, there was no in-screen navigation path back to the dashboard home.
+
+### Why
+The kitchen top bar only provided brand, clock, stats, and logout controls. No route action existed for returning to `/dashboard`.
+
+### Fix
+- Added a `Home` back control in the kitchen top bar (left side), visible for manager users.
+- The button routes back to `/dashboard` via Next.js router (`router.push('/dashboard')`).
+- Kept the kitchen page fullscreen behavior intact (no sidebar/header added).
+

@@ -2,14 +2,14 @@
 
 import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query'
-import { UtensilsCrossed, LogOut } from 'lucide-react'
+import { UtensilsCrossed, LogOut, ChevronLeft } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import api from '@/lib/api'
 import { createStompClient, TOPICS } from '@/lib/socket'
-import { clearAuth } from '@/lib/auth'
+import { clearAuth, getUser } from '@/lib/auth'
 import { OVERDUE_MS } from '@/lib/constants'
 import type { Order } from '@/types'
-import { OrderStatus } from '@/types'
+import { OrderStatus, Role } from '@/types'
 
 // ── constants ──────────────────────────────────────────────────────────────
 const MAX_VISIBLE_ITEMS = 3          // show first 3 items, "+ N more" after
@@ -79,6 +79,11 @@ export default function KitchenPage() {
   const queryClient               = useQueryClient()
   const router                    = useRouter()
   const [now, setNow]             = useState(() => new Date())
+  const isManager                 = getUser()?.role === Role.MANAGER
+
+  function handleBackToHome() {
+    router.push('/dashboard')
+  }
 
   function handleLogout() {
     clearAuth()
@@ -130,6 +135,16 @@ export default function KitchenPage() {
       <header className="h-[56px] shrink-0 bg-[#1A1A1A] border-b border-[#2C2C2C] flex justify-between items-center px-8 z-50">
         {/* Brand */}
         <div className="flex items-center gap-3">
+          {isManager && (
+            <button
+              onClick={handleBackToHome}
+              title="Back to dashboard"
+              className="mr-1 h-8 px-2 rounded-md border border-[#2C2C2C] text-[#9CA3AF] hover:text-white hover:border-[#4B5563] transition-colors flex items-center gap-1.5"
+            >
+              <ChevronLeft size={14} />
+              <span className="text-[11px] font-semibold uppercase tracking-widest">Home</span>
+            </button>
+          )}
           <UtensilsCrossed size={20} className="text-amber-500" />
           <span className="text-white text-[14px] font-semibold tracking-[0.2em] uppercase">
             Gasthaus Kitchen

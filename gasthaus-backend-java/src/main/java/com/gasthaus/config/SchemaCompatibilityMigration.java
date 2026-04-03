@@ -37,6 +37,7 @@ public class SchemaCompatibilityMigration {
     public void migrateReviewsTableForOrderLevelReviews() {
         String schema = resolveSafeSchema(configuredSchema);
         relaxMenuItemNullability(schema);
+        dropLegacyItemBasedUniqueConstraint(schema);
         ensureOrderLevelUniqueConstraint(schema);
     }
 
@@ -100,6 +101,39 @@ public class SchemaCompatibilityMigration {
             log.info("[schema-migration] Added unique constraint uk_review_customer_order on {}.reviews", schema);
         } catch (DataAccessException ex) {
             log.warn("[schema-migration] Failed to add uk_review_customer_order on {}.reviews: {}",
+                    schema,
+                    ex.getMostSpecificCause() != null
+                            ? ex.getMostSpecificCause().getMessage()
+                            : ex.getMessage());
+        }
+    }
+
+    private void dropLegacyItemBasedUniqueConstraint(String schema) {
+        Integer existing = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.table_constraints
+                WHERE table_schema = ?
+                  AND table_name = 'reviews'
+                  AND constraint_type = 'UNIQUE'
+                  AND constraint_name = 'uk_review_customer_item_order'
+                """,
+                Integer.class,
+                schema
+        );
+
+        if (existing == null || existing == 0) {
+            return;
+        }
+
+        try {
+            jdbcTemplate.execute(
+                    "ALTER TABLE " + schema
+                            + ".reviews DROP CONSTRAINT uk_review_customer_item_order"
+            );
+            log.info("[schema-migration] Dropped legacy constraint uk_review_customer_item_order on {}.reviews", schema);
+        } catch (DataAccessException ex) {
+            log.warn("[schema-migration] Failed to drop uk_review_customer_item_order on {}.reviews: {}",
                     schema,
                     ex.getMostSpecificCause() != null
                             ? ex.getMostSpecificCause().getMessage()
