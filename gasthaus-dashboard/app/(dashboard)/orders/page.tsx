@@ -7,6 +7,7 @@ import api from '@/lib/api'
 import { createStompClient, TOPICS } from '@/lib/socket'
 import type { Order } from '@/types'
 import { OrderStatus } from '@/types'
+import OrderDetailModal from '@/components/order-detail-modal'
 
 // ── column config ──────────────────────────────────────────────────────────
 
@@ -18,51 +19,67 @@ const COLUMNS: {
   nextStatus: OrderStatus | null
   leftBorder: string | null
   dimmed: boolean
+  canCancel: boolean
 }[] = [
   {
     status:      OrderStatus.PENDING,
     label:       'Pending',
-    badgeCls:    'bg-[#FEF3C7] text-[#D97706]',
+    badgeCls:    'bg-[#FEF3C7] text-[#92400E]',   // light amber / amber-800
     actionLabel: 'Confirm',
     nextStatus:  OrderStatus.CONFIRMED,
     leftBorder:  null,
     dimmed:      false,
+    canCancel:   true,
   },
   {
     status:      OrderStatus.CONFIRMED,
     label:       'Confirmed',
-    badgeCls:    'bg-[#DBEAFE] text-[#1D4ED8]',
+    badgeCls:    'bg-[#FEF3C7] text-[#D97706]',   // light amber / brand amber
     actionLabel: 'Prep',
     nextStatus:  OrderStatus.PREPARING,
     leftBorder:  null,
     dimmed:      false,
+    canCancel:   true,
   },
   {
     status:      OrderStatus.PREPARING,
     label:       'Preparing',
-    badgeCls:    'bg-[#EDE9FE] text-[#6D28D9]',
+    badgeCls:    'bg-[#FEF3C7] text-[#D97706]',   // light amber / brand amber
     actionLabel: 'Ready',
     nextStatus:  OrderStatus.READY,
-    leftBorder:  '#6D28D9',
+    leftBorder:  '#D97706',                        // amber left-border (active)
     dimmed:      false,
+    canCancel:   false,
   },
   {
     status:      OrderStatus.READY,
     label:       'Ready',
-    badgeCls:    'bg-[#D1FAE5] text-[#059669]',
+    badgeCls:    'bg-[#FEF3C7] text-[#78350F]',   // light amber / dark amber — most urgent
     actionLabel: 'Serve',
     nextStatus:  OrderStatus.SERVED,
-    leftBorder:  '#059669',
+    leftBorder:  '#78350F',                        // dark amber left-border
     dimmed:      false,
+    canCancel:   false,
   },
   {
     status:      OrderStatus.SERVED,
     label:       'Served',
-    badgeCls:    'bg-[#E5E7EB] text-[#6B7280]',
+    badgeCls:    'bg-[#F3F4F6] text-[#6B7280]',   // grey — order delivered, winding down
+    actionLabel: 'Mark Paid',
+    nextStatus:  OrderStatus.PAID,
+    leftBorder:  '#9CA3AF',                        // grey left-border
+    dimmed:      false,
+    canCancel:   false,
+  },
+  {
+    status:      OrderStatus.PAID,
+    label:       'Paid',
+    badgeCls:    'bg-[#F3F4F6] text-[#9CA3AF]',   // light grey — terminal
     actionLabel: null,
     nextStatus:  null,
     leftBorder:  null,
     dimmed:      true,
+    canCancel:   false,
   },
 ]
 
@@ -92,9 +109,10 @@ function isThisWeek(dateStr: string): boolean {
 
 export default function OrdersPage() {
   const queryClient = useQueryClient()
-  const [search, setSearch]     = useState('')
-  const [period, setPeriod]     = useState<'today' | 'week'>('today')
-  const [spinning, setSpinning] = useState(false)
+  const [search, setSearch]       = useState('')
+  const [period, setPeriod]       = useState<'today' | 'week'>('today')
+  const [spinning, setSpinning]   = useState(false)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const { data: orders = [], isFetching } = useQuery<Order[]>({
     queryKey: ['orders'],
@@ -108,6 +126,12 @@ export default function OrdersPage() {
   const { mutate: updateStatus } = useMutation({
     mutationFn: ({ id, status }: { id: string; status: OrderStatus }) =>
       api.patch(`/orders/${id}/status`, { status }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+  })
+
+  const { mutate: cancelOrder } = useMutation({
+    mutationFn: (id: string) =>
+      api.patch(`/orders/${id}/status`, { status: OrderStatus.CANCELLED }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
   })
 
@@ -137,8 +161,11 @@ export default function OrdersPage() {
   }, [orders, search, period])
 
   return (
-    // Full viewport height minus the fixed 56px header
     <div className="flex flex-col h-[calc(100vh-56px)] overflow-hidden">
+
+      {selectedId && (
+        <OrderDetailModal orderId={selectedId} onClose={() => setSelectedId(null)} />
+      )}
 
       {/* ── Filter bar ───────────────────────────────────────────────── */}
       <div className="shrink-0 flex items-center justify-between px-6 py-4 border-b border-[#E5E7EB] bg-[#F9F9F7]">
@@ -221,7 +248,10 @@ export default function OrdersPage() {
                       dimmed={col.dimmed}
                       actionLabel={col.actionLabel ?? undefined}
                       nextStatus={col.nextStatus ?? undefined}
+                      canCancel={col.canCancel}
                       onAction={(id, status) => updateStatus({ id, status })}
+                      onCancel={(id) => cancelOrder(id)}
+                      onCardClick={(id) => setSelectedId(id)}
                     />
                   ))}
                 </div>
@@ -242,19 +272,28 @@ function OrderCard({
   dimmed,
   actionLabel,
   nextStatus,
+  canCancel,
   onAction,
+  onCancel,
+  onCardClick,
 }: {
   order: Order
   leftBorder?: string
   dimmed?: boolean
   actionLabel?: string
   nextStatus?: OrderStatus
+  canCancel?: boolean
   onAction: (id: string, status: OrderStatus) => void
+  onCancel: (id: string) => void
+  onCardClick: (id: string) => void
 }) {
   const tableLabel  = order.table?.tableNumber ? `T${order.table.tableNumber}` : '—'
   const name        = order.customer?.name ?? 'Guest'
   const summary     = order.items.slice(0, 2).map((i) => `${i.quantity}× ${i.menuItem.name}`).join(', ')
   const hasMore     = order.items.length > 2
+  const notes       = order.notes
+
+  const [confirmingCancel, setConfirmingCancel] = useState(false)
 
   // Build class string based on dimmed / leftBorder
   const borderCls = dimmed
@@ -267,8 +306,9 @@ function OrderCard({
 
   return (
     <div
-      className={`rounded-lg p-3 transition-all ${bgCls} ${borderCls}`}
+      className={`rounded-lg p-3 transition-all cursor-pointer ${bgCls} ${borderCls}`}
       style={leftBorder ? { borderLeftColor: leftBorder } : undefined}
+      onClick={() => onCardClick(order.id)}
     >
       <div className="flex justify-between items-start mb-2">
         <span className="text-[10px] font-bold text-[#9CA3AF] tracking-wider">{tableLabel}</span>
@@ -279,18 +319,24 @@ function OrderCard({
         {name}
       </h4>
 
-      <p className={`text-[11px] mb-3 leading-relaxed ${dimmed ? 'text-[#9CA3AF]' : 'text-[#6B7280]'}`}>
+      <p className={`text-[11px] leading-relaxed ${dimmed ? 'text-[#9CA3AF]' : 'text-[#6B7280]'}`}>
         {summary}{hasMore ? ', …' : ''}
       </p>
 
-      <div className="flex justify-between items-center border-t border-[#F3F4F6] pt-3">
+      {notes && (
+        <div className="mt-2 mb-1 px-2 py-1.5 bg-[#FEF3C7] rounded text-[10px] text-[#92400E] leading-relaxed">
+          <span className="font-bold">Note: </span>{notes}
+        </div>
+      )}
+
+      <div className="flex justify-between items-center border-t border-[#F3F4F6] pt-3 mt-3">
         <span className={`text-xs font-bold ${dimmed ? 'text-[#6B7280]' : 'text-[#1C1C1E]'}`}>
           Rs. {order.totalAmount.toLocaleString()}
         </span>
 
         {actionLabel && nextStatus ? (
           <button
-            onClick={() => onAction(order.id, nextStatus)}
+            onClick={(e) => { e.stopPropagation(); onAction(order.id, nextStatus) }}
             className="text-xs font-bold text-[#D97706] hover:opacity-75 transition-opacity flex items-center gap-1"
           >
             {actionLabel} <ArrowRight size={12} />
@@ -299,6 +345,36 @@ function OrderCard({
           <span className="text-[10px] font-bold text-[#9CA3AF]">DONE</span>
         )}
       </div>
+
+      {/* Cancel — only on PENDING and CONFIRMED cards, with inline confirmation */}
+      {canCancel && (
+        <div className="mt-2 pt-2 border-t border-[#F3F4F6]">
+          {confirmingCancel ? (
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <span className="text-[10px] text-[#6B7280] flex-1">Cancel this order?</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirmingCancel(false) }}
+                className="text-[10px] font-semibold text-[#6B7280] hover:text-[#1C1C1E] transition-colors"
+              >
+                No
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); onCancel(order.id); setConfirmingCancel(false) }}
+                className="text-[10px] font-semibold text-red-500 hover:text-red-700 transition-colors"
+              >
+                Yes, cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={(e) => { e.stopPropagation(); setConfirmingCancel(true) }}
+              className="text-[10px] font-semibold text-red-400 hover:text-red-600 transition-colors"
+            >
+              Cancel order
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
 }

@@ -130,16 +130,14 @@ class _AiWaiterScreenState extends State<AiWaiterScreen> {
     );
   }
 
-  // Dark #1C1C1E top bar with sparkle icon + title + clear button.
-  // This header replaces the standard shell header — it's built inline
-  // because the AI screen has a unique dark identity.
+  // Custom top bar matching the app's dark amber header colour.
   Widget _buildHeader(AiChatProvider provider) {
     return Container(
       // SafeArea.top respects the status bar height on notched devices.
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top,
       ),
-      color: AppColors.darkSurface,
+      color: AppColors.primaryDark,
       child: SizedBox(
         height: 56,
         child: Padding(

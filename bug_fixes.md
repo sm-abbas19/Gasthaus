@@ -185,6 +185,44 @@ Wrapped the `CustomScrollView` in a `RefreshIndicator` (amber spinner, calls `me
 
 ---
 
+## BF-012 — Missing PAID status, special instructions hidden, Flutter "Done" unreachable
+
+**Files:** `gasthaus-backend-java/.../enums/OrderStatus.java`, `gasthaus-dashboard/types/index.ts`, `gasthaus-dashboard/app/(dashboard)/orders/page.tsx`, `gasthaus_app/lib/core/models/order.dart`, `gasthaus_app/lib/features/orders/order_tracking_screen.dart`  
+**Date:** 2026-04-03
+
+### What
+Three related issues: (1) special instructions (per-item notes) were never displayed in the dashboard order cards; (2) the dashboard's final status was SERVED with no further action — orders were stuck there permanently; (3) the Flutter app's "Done" stepper step was mapped to COMPLETED, a status that was never set by the dashboard, so Flutter orders never reached Done.
+
+### Why
+The `OrderItem` type has a `notes` field but the `OrderCard` component never rendered it. The SERVED column had `actionLabel: null` making it a dead end. The new intended flow (SERVED → PAID) didn't exist: PAID was absent from both the Spring Boot enum and the dashboard types. Flutter's `_statusSteps` ended with COMPLETED which the backend never emitted via the dashboard, and `isCompleted` / `isActive` didn't account for PAID.
+
+### Fix
+- **Spring Boot**: Added `PAID` to `OrderStatus` enum (between SERVED and the legacy COMPLETED).
+- **Dashboard types**: Added `PAID = 'PAID'` to the `OrderStatus` enum.
+- **Dashboard orders page**: Changed SERVED column to have `actionLabel: 'Mark Paid'` → `nextStatus: PAID`; added PAID as the new terminal/dimmed column; rendered item notes in an amber callout inside `OrderCard` when present.
+- **Flutter `order.dart`**: `isActive` now includes SERVED (payment pending); `isCompleted` maps PAID (and legacy COMPLETED) to done.
+- **Flutter `order_tracking_screen.dart`**: Replaced COMPLETED with PAID in `_statusSteps`; updated `_statusConfig` with PAID and SERVED subtitles reflecting the new flow; kept COMPLETED case for legacy order display.
+
+---
+
+## BF-011 — Order tracking screen shows no item names and Rs. 0 per item
+
+**File:** `gasthaus_app/lib/core/models/order.dart`  
+**Date:** 2026-04-03
+
+### What
+The order tracking screen displayed item rows with only the fork/knife fallback icon (no name, no image) and "Rs. 0" for every item price. The order total was correct.
+
+### Why
+`OrderItem.fromJson` was written for the NestJS/Prisma response shape, which flattens item details into top-level keys: `menuItemName`, `menuItemImage`, and `price`. Spring Boot serializes the `@ManyToOne MenuItem` relationship as a nested object under `menuItem`, and stores the price snapshot as `unitPrice` (the entity field name). All three reads returned `null`/0 because the keys didn't exist at the top level.
+
+Similarly, `Order.fromJson` read `json['tableNumber']` directly, but Spring Boot nests the table under `json['table']['tableNumber']`.
+
+### Fix
+Updated `OrderItem.fromJson` to read from the nested `menuItem` object for name, image, and id, and from `unitPrice` for price — with fallbacks to the NestJS flat keys so the model works against either backend. Updated `Order.fromJson` to try `json['table']['tableNumber']` first, falling back to flat `json['tableNumber']`.
+
+---
+
 ## BF-010 — STOMP menu push not received after logout/login cycle
 
 **File:** `gasthaus_app/lib/core/services/socket_service.dart`  

@@ -35,6 +35,9 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
   double _rating = 0;
   final _commentController = TextEditingController();
   bool _isSubmitting = false;
+  // Holds an inline error message shown below the submit button on failure.
+  // Cleared when the user retries.
+  String? _errorMessage;
 
   // _ratingLabel maps the current numeric rating to a human-readable label
   // shown below the stars (e.g. 4 stars → "Good").
@@ -56,7 +59,8 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
   Future<void> _submit() async {
     if (_rating == 0) return;
 
-    setState(() => _isSubmitting = true);
+    // Clear any previous error before retrying.
+    setState(() { _isSubmitting = true; _errorMessage = null; });
     try {
       // POST /reviews body per the backend spec:
       // { menuItemId, orderId, rating (int), comment? }
@@ -68,28 +72,12 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
           'comment': _commentController.text.trim(),
       });
 
-      if (mounted) {
-        // Close the bottom sheet. Navigator.pop() dismisses the top route —
-        // in a modal bottom sheet context, that closes the sheet.
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Review submitted — thank you!'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      // Close the sheet — the orders list will refresh automatically.
+      if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      // Show the error inline below the submit button so the user
+      // doesn't lose their typed review and can retry immediately.
+      if (mounted) setState(() => _errorMessage = e.toString());
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -313,30 +301,60 @@ class _WriteReviewSheetState extends State<WriteReviewSheet> {
     // ElevatedButton.onPressed = null renders the button in its disabled style.
     final canSubmit = _rating > 0 && !_isSubmitting;
 
-    return SizedBox(
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: canSubmit ? _submit : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: AppColors.border,
-          disabledForegroundColor: AppColors.textMuted,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton(
+            onPressed: canSubmit ? _submit : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: AppColors.border,
+              disabledForegroundColor: AppColors.textMuted,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              elevation: 0,
+            ),
+            child: _isSubmitting
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2.5),
+                  )
+                : Text('Submit Review', style: AppTextStyles.buttonText),
           ),
-          elevation: 0,
         ),
-        child: _isSubmitting
-            ? const SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                    color: Colors.white, strokeWidth: 2.5),
-              )
-            : Text('Submit Review', style: AppTextStyles.buttonText),
-      ),
+        // Inline error — shown directly below the button so the user's
+        // review text stays intact and they can fix the issue and retry.
+        if (_errorMessage != null) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.error.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, size: 16, color: AppColors.error),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    _errorMessage!,
+                    style: AppTextStyles.caption.copyWith(color: AppColors.error),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

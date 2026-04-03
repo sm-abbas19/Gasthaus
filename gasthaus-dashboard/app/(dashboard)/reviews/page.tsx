@@ -24,14 +24,14 @@ function initials(name?: string): string {
   return name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
 }
 
-// Deterministic avatar background colour from initials
+// Deterministic avatar background colour from initials — amber/grey palette only
 const AVATAR_COLORS = [
-  'bg-[#FEF3C7] text-amber-700',
-  'bg-[#DBEAFE] text-blue-600',
-  'bg-[#D1FAE5] text-emerald-600',
-  'bg-[#EDE9FE] text-purple-600',
-  'bg-[#FCE7F3] text-pink-600',
-  'bg-[#E0F2FE] text-sky-600',
+  'bg-[#FEF3C7] text-[#92400E]',
+  'bg-[#FFF7ED] text-[#D97706]',
+  'bg-[#F3F4F6] text-[#374151]',
+  'bg-[#E5E7EB] text-[#6B7280]',
+  'bg-[#FEF3C7] text-[#78350F]',
+  'bg-[#F9FAFB] text-[#4B5563]',
 ]
 
 function avatarColor(name?: string): string {
@@ -48,7 +48,7 @@ function StarRow({ rating, size = 14 }: { rating: number; size?: number }) {
         <Star
           key={n}
           size={size}
-          className={n <= rating ? 'text-amber-500 fill-amber-500' : 'text-[#D1D5DB]'}
+          className={n <= rating ? 'text-[#D97706] fill-[#D97706]' : 'text-[#D1D5DB]'}
         />
       ))}
     </div>
@@ -267,13 +267,13 @@ export default function ReviewsPage() {
                 Sentiment
               </h3>
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="bg-[#D1FAE5] text-emerald-700 text-[11px] font-semibold px-3 py-1 rounded">
+                <span className="bg-[#FEF3C7] text-[#78350F] text-[11px] font-semibold px-3 py-1 rounded">
                   {positive} Positive
                 </span>
                 <span className="bg-[#F3F4F6] text-[#6B7280] text-[11px] font-semibold px-3 py-1 rounded">
                   {neutral} Neutral
                 </span>
-                <span className="bg-[#FEE2E2] text-red-600 text-[11px] font-semibold px-3 py-1 rounded">
+                <span className="bg-[#E5E7EB] text-[#6B7280] text-[11px] font-semibold px-3 py-1 rounded">
                   {negative} Negative
                 </span>
               </div>

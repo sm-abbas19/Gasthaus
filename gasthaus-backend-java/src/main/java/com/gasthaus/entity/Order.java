@@ -56,6 +56,10 @@ public class Order {
     @Column(nullable = false)
     private Double totalAmount;
 
+    /** Optional special instructions from the customer (e.g. "no nuts, extra spicy"). */
+    @Column(columnDefinition = "text")
+    private String notes;
+
     @CreationTimestamp
     @Column(updatable = false)
     private LocalDateTime createdAt;
@@ -96,6 +100,24 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
+
+    /**
+     * Status history — one entry per status transition, ordered chronologically.
+     *
+     * FetchType.EAGER: loaded automatically with every Order fetch.
+     * @BatchSize(size = 50): when loading a list of orders, Hibernate batches the
+     * history SELECTs into chunks of 50 (WHERE order_id IN (...)) instead of N
+     * individual queries. This avoids the N+1 problem without a JOIN FETCH.
+     *
+     * Why not JOIN FETCH? — Adding a second JOIN FETCH on a List collection in the
+     * same JPQL query as o.items causes a MultipleBagFetchException in Hibernate.
+     * BatchSize sidesteps this by fetching histories in a separate batched query.
+     */
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OrderBy("changedAt ASC")
+    @org.hibernate.annotations.BatchSize(size = 50)
+    @Builder.Default
+    private List<OrderStatusHistory> statusHistory = new ArrayList<>();
 
     // Reviews are accessed via GET /reviews/order/:id — not included in order responses
     @JsonIgnore

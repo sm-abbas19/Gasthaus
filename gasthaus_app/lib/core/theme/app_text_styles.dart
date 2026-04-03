@@ -58,7 +58,7 @@ class AppTextStyles {
   static TextStyle topBarTitle = GoogleFonts.inter(
     fontSize: 17,
     fontWeight: FontWeight.w700,
-    color: AppColors.textPrimary,
+    color: Colors.white,
   );
 
   static TextStyle topBarTitleLight = GoogleFonts.inter(

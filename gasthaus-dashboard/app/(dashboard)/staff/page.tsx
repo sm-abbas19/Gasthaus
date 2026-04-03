@@ -8,8 +8,8 @@ import type { User } from '@/types'
 import { Role } from '@/types'
 
 const ROLE_META = {
-  [Role.MANAGER]: { label: 'Manager', icon: ShieldCheck, color: 'text-[#D97706] bg-[#FEF3C7]' },
-  [Role.KITCHEN]: { label: 'Kitchen', icon: ChefHat,     color: 'text-[#6D28D9] bg-[#EDE9FE]' },
+  [Role.MANAGER]: { label: 'Manager', icon: ShieldCheck, color: 'text-[#78350F] bg-[#FEF3C7]' },
+  [Role.KITCHEN]: { label: 'Kitchen', icon: ChefHat,     color: 'text-[#6B7280] bg-[#F3F4F6]' },
 }
 
 export default function StaffPage() {
@@ -156,8 +156,8 @@ export default function StaffPage() {
         <p className="text-sm text-[#9CA3AF]">Loading staff…</p>
       ) : (
         <div className="space-y-6">
-          <StaffSection title="Managers" icon={ShieldCheck} users={managers} color="text-[#D97706]" badge="bg-[#FEF3C7] text-[#D97706]" />
-          <StaffSection title="Kitchen Staff" icon={ChefHat} users={kitchen} color="text-[#6D28D9]" badge="bg-[#EDE9FE] text-[#6D28D9]" />
+          <StaffSection title="Managers" icon={ShieldCheck} users={managers} color="text-[#78350F]" badge="bg-[#FEF3C7] text-[#78350F]" />
+          <StaffSection title="Kitchen Staff" icon={ChefHat} users={kitchen} color="text-[#6B7280]" badge="bg-[#F3F4F6] text-[#6B7280]" />
         </div>
       )}
     </div>

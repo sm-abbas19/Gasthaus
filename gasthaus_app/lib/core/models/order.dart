@@ -16,12 +16,20 @@ class OrderItem {
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
+    // Spring Boot serializes OrderItem with a nested `menuItem` object
+    // (because the entity has a @ManyToOne MenuItem field) and stores the
+    // price snapshot as `unitPrice` (the entity field name).
+    //
+    // NestJS/Prisma flattened these into top-level `menuItemName`, `menuItemImage`,
+    // and `price` keys. We try both shapes so the model works against either backend.
+    final menuItem = json['menuItem'] as Map<String, dynamic>?;
     return OrderItem(
       id: json['id']?.toString() ?? '',
-      menuItemId: json['menuItemId']?.toString() ?? '',
-      menuItemName: json['menuItemName'] ?? '',
-      menuItemImage: json['menuItemImage'],
-      price: (json['price'] as num?)?.toDouble() ?? 0.0,
+      menuItemId: menuItem?['id']?.toString() ?? json['menuItemId']?.toString() ?? '',
+      menuItemName: menuItem?['name'] as String? ?? json['menuItemName'] as String? ?? '',
+      menuItemImage: menuItem?['imageUrl'] as String? ?? json['menuItemImage'] as String?,
+      // Spring Boot: `unitPrice` — NestJS: `price`
+      price: (json['unitPrice'] as num?)?.toDouble() ?? (json['price'] as num?)?.toDouble() ?? 0.0,
       quantity: json['quantity'] as int? ?? 1,
     );
   }
@@ -56,7 +64,11 @@ class Order {
       id: json['id']?.toString() ?? '',
       orderNumber: json['orderNumber']?.toString() ?? json['id']?.toString() ?? '',
       status: json['status'] ?? 'PENDING',
-      tableNumber: json['tableNumber'] as int? ?? 0,
+      // Spring Boot: table number is nested under `table.tableNumber`
+      // NestJS: flat `tableNumber` field at the top level
+      tableNumber: json['tableNumber'] as int?
+          ?? (json['table'] as Map<String, dynamic>?)?['tableNumber'] as int?
+          ?? 0,
       items: (rawItems as List)
           .map((i) => OrderItem.fromJson(i as Map<String, dynamic>))
           .toList(),
@@ -68,13 +80,14 @@ class Order {
     );
   }
 
-  // SERVED means the food has been delivered to the table — done from the
-  // customer's perspective. Only in-kitchen statuses count as "active".
+  // SERVED means food is at the table but payment is still pending —
+  // still active from the customer's perspective.
+  // Only PAID (or legacy COMPLETED) is truly done.
   bool get isActive =>
-      ['PENDING', 'CONFIRMED', 'PREPARING', 'READY'].contains(status);
+      ['PENDING', 'CONFIRMED', 'PREPARING', 'READY', 'SERVED'].contains(status);
 
-  // SERVED and COMPLETED both represent a finished order to the customer.
-  bool get isCompleted => status == 'COMPLETED' || status == 'SERVED';
+  // PAID is the new terminal state. COMPLETED kept for legacy order compatibility.
+  bool get isCompleted => status == 'PAID' || status == 'COMPLETED';
 
   bool get isCancelled => status == 'CANCELLED';
 }

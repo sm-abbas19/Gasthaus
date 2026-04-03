@@ -48,7 +48,11 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 64 + MediaQuery.of(context).padding.bottom,
-      color: AppColors.darkSurface,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        // Hairline top border separates the nav bar from screen content.
+        border: Border(top: BorderSide(color: AppColors.border, width: 1)),
+      ),
       child: SafeArea(
         top: false,
         child: Row(
@@ -99,7 +103,8 @@ class _NavItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.primary : AppColors.textSecondary;
+    // Active: brand amber. Inactive: dark grey — legible on the white bar.
+    final color = active ? AppColors.primary : const Color(0xFF6B7280);
     return Expanded(
       child: InkWell(
         onTap: onTap,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Receipt, Banknote, LayoutGrid, Clock, ArrowRight, AlertTriangle } from 'lucide-react'
 import Link from 'next/link'
@@ -9,6 +9,7 @@ import { createStompClient, TOPICS } from '@/lib/socket'
 import { OVERDUE_MS } from '@/lib/constants'
 import type { Order, RestaurantTable } from '@/types'
 import { OrderStatus } from '@/types'
+import OrderDetailModal from '@/components/order-detail-modal'
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
@@ -30,19 +31,21 @@ function isOverdue(order: Order): boolean {
 }
 
 const STATUS_STYLES: Record<OrderStatus, string> = {
-  [OrderStatus.PENDING]:   'bg-[#FEF3C7] text-[#D97706]',
-  [OrderStatus.CONFIRMED]: 'bg-[#DBEAFE] text-[#1D4ED8]',
-  [OrderStatus.PREPARING]: 'bg-[#EDE9FE] text-[#6D28D9]',
-  [OrderStatus.READY]:     'bg-[#D1FAE5] text-[#059669]',
-  [OrderStatus.SERVED]:    'bg-[#E5E7EB] text-[#6B7280]',
-  [OrderStatus.COMPLETED]: 'bg-zinc-100 text-[#9CA3AF]',
-  [OrderStatus.CANCELLED]: 'bg-red-100 text-red-600',
+  [OrderStatus.PENDING]:   'bg-[#FEF3C7] text-[#92400E]',
+  [OrderStatus.CONFIRMED]: 'bg-[#FEF3C7] text-[#D97706]',
+  [OrderStatus.PREPARING]: 'bg-[#FEF3C7] text-[#D97706]',
+  [OrderStatus.READY]:     'bg-[#FEF3C7] text-[#78350F]',
+  [OrderStatus.SERVED]:    'bg-[#F3F4F6] text-[#6B7280]',
+  [OrderStatus.PAID]:      'bg-[#F3F4F6] text-[#9CA3AF]',
+  [OrderStatus.COMPLETED]: 'bg-[#F3F4F6] text-[#9CA3AF]',
+  [OrderStatus.CANCELLED]: 'bg-[#F3F4F6] text-[#9CA3AF]',
 }
 
 // ── page ───────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const queryClient = useQueryClient()
+  const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const { data: orders = [] } = useQuery<Order[]>({
     queryKey: ['orders'],
@@ -79,7 +82,8 @@ export default function DashboardPage() {
   const overdueCount  = orders.filter(isOverdue).length
   const occupiedCount = tables.filter((t) => t.isOccupied).length
 
-  const liveOrders = [...orders]
+  const liveOrders = orders
+    .filter((o) => [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PREPARING, OrderStatus.READY].includes(o.status))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
     .slice(0, 6)
 
@@ -88,19 +92,23 @@ export default function DashboardPage() {
   return (
     <div className="px-8 py-8">
 
+      {selectedId && (
+        <OrderDetailModal orderId={selectedId} onClose={() => setSelectedId(null)} />
+      )}
+
       {/* ── Stat cards ─────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         <StatCard
           icon={<Receipt size={20} className="text-amber-700" />}
           label="Total Orders Today"
           value={todaysOrders.length.toString()}
-          badge={{ text: `${orders.length} total`, cls: 'text-emerald-600 bg-emerald-50' }}
+          badge={{ text: `${orders.length} total`, cls: 'text-[#78350F] bg-[#FEF3C7]' }}
         />
         <StatCard
           icon={<Banknote size={20} className="text-amber-700" />}
           label="Revenue Today"
           value={`Rs. ${revenueToday.toLocaleString()}`}
-          badge={{ text: 'Today', cls: 'text-emerald-600 bg-emerald-50' }}
+          badge={{ text: 'Today', cls: 'text-[#78350F] bg-[#FEF3C7]' }}
         />
         <StatCard
           icon={<LayoutGrid size={20} className="text-amber-700" />}
@@ -109,13 +117,13 @@ export default function DashboardPage() {
           badge={{ text: `${tables.length - occupiedCount} free`, cls: 'text-zinc-500' }}
         />
         <StatCard
-          icon={<Clock size={20} className={overdueCount > 0 ? 'text-red-600' : 'text-amber-700'} />}
+          icon={<Clock size={20} className="text-amber-700" />}
           label="Pending Orders"
           value={pendingCount.toString()}
           badge={
             overdueCount > 0
-              ? { text: `${overdueCount} overdue`, cls: 'text-red-600 bg-red-50' }
-              : { text: 'Needs attention', cls: 'text-amber-600 bg-amber-50' }
+              ? { text: `${overdueCount} overdue`, cls: 'text-[#78350F] bg-[#FEF3C7]' }
+              : { text: 'Needs attention', cls: 'text-[#D97706] bg-[#FEF3C7]' }
           }
         />
       </div>
@@ -140,7 +148,7 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-3">
               {liveOrders.map((order) => (
-                <OrderRow key={order.id} order={order} />
+                <OrderRow key={order.id} order={order} onClick={() => setSelectedId(order.id)} />
               ))}
             </div>
           )}
@@ -230,7 +238,7 @@ function StatCard({
   )
 }
 
-function OrderRow({ order }: { order: Order }) {
+function OrderRow({ order, onClick }: { order: Order; onClick: () => void }) {
   const time = new Date(order.createdAt).toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
@@ -241,14 +249,17 @@ function OrderRow({ order }: { order: Order }) {
   const overdue    = isOverdue(order)
 
   return (
-    <div className={`flex items-center justify-between p-4 rounded-md border ${
-      overdue
-        ? 'bg-red-50 border-l-[3px] border-l-red-500 border-y-red-200 border-r-red-200'
-        : 'bg-zinc-50 border-[#E5E7EB]'
-    }`}>
+    <div
+      onClick={onClick}
+      className={`flex items-center justify-between p-4 rounded-md border cursor-pointer hover:border-[#D97706]/40 transition-colors ${
+        overdue
+          ? 'bg-[#FFF7ED] border-l-[3px] border-l-[#D97706] border-y-[#FEF3C7] border-r-[#FEF3C7]'
+          : 'bg-zinc-50 border-[#E5E7EB]'
+      }`}
+    >
       <div className="flex items-center gap-4">
         <div className={`w-10 h-10 rounded-md flex items-center justify-center font-bold text-xs shrink-0 ${
-          overdue ? 'bg-red-200 text-red-700' : 'bg-zinc-200 text-zinc-600'
+          overdue ? 'bg-[#FEF3C7] text-[#92400E]' : 'bg-zinc-200 text-zinc-600'
         }`}>
           {tableLabel}
         </div>
@@ -256,7 +267,7 @@ function OrderRow({ order }: { order: Order }) {
           <div className="flex items-center gap-2">
             <p className="font-semibold text-zinc-900 text-sm">{name}</p>
             {overdue && (
-              <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 uppercase tracking-wider">
+              <span className="flex items-center gap-1 text-[10px] font-bold text-[#D97706] uppercase tracking-wider">
                 <AlertTriangle size={10} /> Overdue
               </span>
             )}

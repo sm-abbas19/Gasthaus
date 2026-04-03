@@ -512,7 +512,7 @@ function ItemCard({
           className="flex items-center justify-between pt-3 border-t border-[#F4F4F2]"
           onClick={(e) => e.stopPropagation()}
         >
-          <span className={`text-[10px] font-bold uppercase ${item.isAvailable ? 'text-emerald-600' : 'text-[#9CA3AF]'}`}>
+          <span className={`text-[10px] font-bold uppercase ${item.isAvailable ? 'text-[#78350F]' : 'text-[#9CA3AF]'}`}>
             {item.isAvailable ? 'Available' : 'Unavailable'}
           </span>
           <button

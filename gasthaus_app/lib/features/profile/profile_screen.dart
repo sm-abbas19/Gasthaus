@@ -97,7 +97,7 @@ class ProfileScreen extends StatelessWidget {
   Widget _buildIdentityHeader(BuildContext context, User user) {
     return Container(
       // Extend the dark strip to include the status bar (SafeArea top)
-      color: AppColors.darkSurface,
+      color: AppColors.primaryDark,
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 16,
         left: 20,

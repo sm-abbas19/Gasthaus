@@ -388,7 +388,7 @@ function MetricCard({
       <p className="text-[10px] text-[#9CA3AF] font-bold uppercase mb-1">{label}</p>
       <div className="flex items-baseline gap-2 flex-wrap">
         <span className="text-lg font-bold text-zinc-900">{value}</span>
-        <span className={`text-[10px] font-bold ${trend.positive ? 'text-emerald-600' : 'text-red-500'}`}>
+        <span className={`text-[10px] font-bold ${trend.positive ? 'text-[#78350F]' : 'text-[#9CA3AF]'}`}>
           {trend.text}
         </span>
       </div>

@@ -15,8 +15,8 @@ class ApiService {
   ApiService._();
   static final ApiService instance = ApiService._();
 
-  // Use 10.0.2.2 for Android emulator to reach host machine's localhost
-  static const String _baseUrl = 'http://10.0.2.2:8080/api';
+  // LAN IP — works for both physical devices and the Android emulator
+  static const String _baseUrl = 'http://192.168.100.21:8080/api';
 
   // on401 is a callback registered by the app at startup (in main.dart).
   // When a 401 response is received the interceptor calls this, which triggers

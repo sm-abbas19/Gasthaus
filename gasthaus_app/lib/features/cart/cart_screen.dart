@@ -39,23 +39,23 @@ class _CartScreenState extends State<CartScreen> {
     super.dispose();
   }
 
-  // If no table number is set (customer didn't scan a QR code), show a dialog
-  // asking them to enter it manually. Returns true if a number was entered,
-  // false if the user cancelled.
-  Future<bool> _askForTableNumber() async {
+  // Shows a dialog asking the customer to enter their table number.
+  // [title] lets callers customize the prompt (e.g. "Change table" vs the default).
+  // Returns true if a valid number was confirmed, false if cancelled.
+  Future<bool> _askForTableNumber({String title = 'Which table are you at?'}) async {
     final controller = TextEditingController();
     final confirmed = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Which table are you at?'),
+        title: Text(title),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
           autofocus: true,
           decoration: const InputDecoration(
             hintText: 'Enter table number',
-            prefixIcon: Icon(Icons.restaurant),
+            prefixIcon: Icon(Icons.table_restaurant),
           ),
         ),
         actions: [
@@ -79,6 +79,59 @@ class _CartScreenState extends State<CartScreen> {
     return confirmed == true;
   }
 
+  // Called when the table the customer entered is already occupied.
+  // Explains what happened and offers to change the table number.
+  Future<void> _handleOccupiedTable(int tableNum) async {
+    final shouldChange = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Table unavailable'),
+        content: Text(
+          'Table $tableNum is currently occupied by another order. '
+          'Please check your table number or ask a staff member for assistance.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
+            child: const Text('Change Table'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldChange == true && mounted) {
+      final provided = await _askForTableNumber(title: 'Enter your table number');
+      // Retry order placement with the new table number.
+      if (provided && mounted) _placeOrder();
+    }
+  }
+
+  // Shows an error dialog for order placement failures.
+  void _showOrderError(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Could not place order'),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _placeOrder() async {
     // context.read<T>() reads a provider once without subscribing.
     // We use read() (not watch()) here because we're inside an async callback,
@@ -95,12 +148,21 @@ class _CartScreenState extends State<CartScreen> {
     setState(() => _isPlacingOrder = true);
 
     try {
-      // Step 1: Resolve tableNumber → tableId (UUID).
+      // Step 1: Resolve tableNumber → tableId (UUID) and check availability.
       // The backend's CreateOrderRequest requires a tableId UUID, not a number.
-      // GET /tables/number/:num is public and returns the table object with its id.
+      // GET /tables/number/:num is public and returns the full table object.
       final tableNum = cart.tableNumber!;
       final tableRes = await ApiService.instance.dio
           .get('/tables/number/$tableNum');
+
+      // If another order is active on this table, stop immediately and let
+      // the customer change to a different table rather than showing a raw error.
+      if (tableRes.data['isOccupied'] == true) {
+        setState(() => _isPlacingOrder = false);
+        await _handleOccupiedTable(tableNum);
+        return;
+      }
+
       final tableId = tableRes.data['id']?.toString();
       if (tableId == null) throw Exception('Table $tableNum not found');
 
@@ -130,15 +192,9 @@ class _CartScreenState extends State<CartScreen> {
       // go "back" to a cleared cart. context.push() would keep cart in the stack.
       if (mounted) context.go('/orders/$orderId');
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString()),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      // Show failures as a dialog so the customer's cart is preserved and
+      // they can read the message at their own pace before dismissing.
+      if (mounted) _showOrderError(e.toString());
     } finally {
       // `mounted` check prevents setState after widget disposal —
       // important in async methods because the widget may have been
@@ -172,11 +228,9 @@ class _CartScreenState extends State<CartScreen> {
 
   PreferredSizeWidget _buildAppBar(BuildContext context, CartProvider cart) {
     return AppBar(
-      backgroundColor: AppColors.surface,
-      elevation: 0,
-      surfaceTintColor: Colors.transparent,
+      // Inherits orange background + white foreground from the theme.
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: AppColors.primary),
+        icon: const Icon(Icons.arrow_back),
         // context.pop() goes back in the router stack — equivalent to Navigator.pop().
         // Use pop() for screens pushed on top (like this cart), go() for tab switches.
         onPressed: () => context.pop(),
@@ -186,8 +240,7 @@ class _CartScreenState extends State<CartScreen> {
       actions: [
         if (cart.items.isNotEmpty)
           IconButton(
-            icon: const Icon(Icons.delete_outline,
-                color: AppColors.textSecondary),
+            icon: const Icon(Icons.delete_outline),
             onPressed: () => _showClearDialog(context, cart),
           ),
       ],
@@ -289,27 +342,35 @@ class _CartScreenState extends State<CartScreen> {
   }
 
   Widget _buildTableChip(int tableNumber) {
+    // The chip is tappable so the customer can correct a wrong table number
+    // at any point before placing the order (e.g. if they entered the wrong
+    // number or moved to a different table).
     return Align(
       alignment: Alignment.centerLeft,
-      child: Container(
-        padding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
-        decoration: BoxDecoration(
-          color: AppColors.primaryLight,
-          borderRadius: BorderRadius.circular(99),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.table_restaurant,
-                size: 18, color: AppColors.primary),
-            const SizedBox(width: 6),
-            Text(
-              'Table $tableNumber',
-              style: AppTextStyles.labelSmall
-                  .copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
-            ),
-          ],
+      child: GestureDetector(
+        onTap: () => _askForTableNumber(title: 'Change table number'),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
+          decoration: BoxDecoration(
+            color: AppColors.primaryLight,
+            borderRadius: BorderRadius.circular(99),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.table_restaurant,
+                  size: 18, color: AppColors.primary),
+              const SizedBox(width: 6),
+              Text(
+                'Table $tableNumber',
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(width: 6),
+              // Edit affordance — lets the customer know the chip is tappable.
+              const Icon(Icons.edit, size: 13, color: AppColors.primary),
+            ],
+          ),
         ),
       ),
     );

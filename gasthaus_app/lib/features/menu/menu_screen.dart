@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -75,40 +76,32 @@ class _MenuScreenState extends State<MenuScreen> {
     // transitions — the Column itself has no background, so without this
     // wrapper Flutter would show the theme's colorScheme.surface (white) for
     // one frame while the route animates in.
-    return ColoredBox(
+    // AnnotatedRegion tells Flutter to use light status bar icons (white clock,
+    // battery etc.) while this screen is on top — needed because the custom
+    // orange header doesn't go through AppBar, which normally applies this.
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: ColoredBox(
       color: AppColors.background,
       child: Column(
       children: [
         _buildTopBar(cartCount),
         Expanded(
-          // CustomScrollView is the most efficient way to combine a fixed
-          // header section with a scrollable grid. It uses "slivers" —
-          // Flutter's term for scrollable sections of a scroll view.
-          //
-          // RefreshIndicator detects an overscroll drag and calls onRefresh.
-          // It must wrap a scrollable — here the CustomScrollView.
-          // The Future returned by onRefresh drives the spinner: it stays
-          // visible until loadMenu() completes.
-          child: RefreshIndicator(
-            color: AppColors.primary,
-            onRefresh: () => context.read<MenuProvider>().loadMenu(),
-            child: CustomScrollView(
-              // physics must allow overscroll for RefreshIndicator to trigger.
-              // AlwaysScrollableScrollPhysics ensures this even when the content
-              // is shorter than the viewport (e.g. only 2 items in the grid).
-              physics: const AlwaysScrollableScrollPhysics(),
-              slivers: [
-                SliverToBoxAdapter(child: _buildGreeting(tableNumber)),
-                SliverToBoxAdapter(child: _buildSearchBar()),
-                SliverToBoxAdapter(child: _buildCategoryChips()),
-                _buildMenuGrid(),
-                // Bottom padding so the last row isn't hidden behind the nav bar.
-                const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
-              ],
-            ),
+          // CustomScrollView combines a fixed header section with a scrollable
+          // grid using "slivers" — Flutter's term for scrollable sections.
+          child: CustomScrollView(
+            slivers: [
+              SliverToBoxAdapter(child: _buildGreeting(tableNumber)),
+              SliverToBoxAdapter(child: _buildSearchBar()),
+              SliverToBoxAdapter(child: _buildCategoryChips()),
+              _buildMenuGrid(),
+              // Bottom padding so the last row isn't hidden behind the nav bar.
+              const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+            ],
           ),
         ),
       ],
+      ),
       ),
     );
   }
@@ -117,7 +110,7 @@ class _MenuScreenState extends State<MenuScreen> {
 
   Widget _buildTopBar(int cartCount) {
     return Container(
-      color: AppColors.darkSurface, // #1C1C1E
+      color: AppColors.primaryDark,
       // SafeArea adds padding to avoid the status bar at the top.
       // bottom: false because the bottom safe area is handled by MainShell.
       child: SafeArea(
@@ -133,7 +126,7 @@ class _MenuScreenState extends State<MenuScreen> {
                   width: 22,
                   height: 22,
                   colorFilter: const ColorFilter.mode(
-                    AppColors.primary,
+                    Colors.white,
                     BlendMode.srcIn,
                   ),
                 ),
@@ -160,7 +153,7 @@ class _MenuScreenState extends State<MenuScreen> {
                     children: [
                       const Icon(
                         Icons.shopping_cart_outlined,
-                        color: Color(0xFF9CA3AF), // zinc-400
+                        color: Colors.white,
                         size: 26,
                       ),
                       if (cartCount > 0)
@@ -172,7 +165,8 @@ class _MenuScreenState extends State<MenuScreen> {
                             width: 18,
                             height: 18,
                             decoration: const BoxDecoration(
-                              color: AppColors.primary,
+                              // White badge with amber text — visible on the orange header.
+                              color: Colors.white,
                               shape: BoxShape.circle,
                             ),
                             child: Center(
@@ -181,7 +175,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                 style: const TextStyle(
                                   fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  color: Colors.white,
+                                  color: AppColors.primary,
                                 ),
                               ),
                             ),
@@ -423,19 +417,9 @@ class _MenuScreenState extends State<MenuScreen> {
                   // Tap the card → open detail sheet
                   onTap: () => showItemDetail(context, item),
                   // Tap "+" → quick-add 1 to cart + show snackbar
-                  onAdd: () {
-                    context.read<CartProvider>().addItem(item);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('${item.name} added'),
-                        backgroundColor: AppColors.success,
-                        behavior: SnackBarBehavior.floating,
-                        duration: const Duration(seconds: 2),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                      ),
-                    );
-                  },
+                  // Quick-add to cart — the cart badge in the AppBar updates
+                  // automatically via CartProvider, so no snackbar is needed.
+                  onAdd: () => context.read<CartProvider>().addItem(item),
                 );
               },
               childCount: items.length,
@@ -530,9 +514,9 @@ class _CategoryChip extends StatelessWidget {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? AppColors.darkSurface : AppColors.surface,
+          color: selected ? AppColors.primaryDark : AppColors.surface,
           border: Border.all(
-            color: selected ? AppColors.darkSurface : AppColors.border,
+            color: selected ? AppColors.primaryDark : AppColors.border,
           ),
           borderRadius: BorderRadius.circular(99),
         ),

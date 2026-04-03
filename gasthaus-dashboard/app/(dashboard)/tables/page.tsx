@@ -17,11 +17,11 @@ const ACTIVE_ORDER_STATUSES: OrderStatus[] = [
 ]
 
 const ORDER_STATUS_STYLES: Partial<Record<OrderStatus, string>> = {
-  [OrderStatus.PENDING]:   'bg-[#FEF3C7] text-[#D97706]',
-  [OrderStatus.CONFIRMED]: 'bg-[#DBEAFE] text-[#1D4ED8]',
-  [OrderStatus.PREPARING]: 'bg-[#EDE9FE] text-[#6D28D9]',
-  [OrderStatus.READY]:     'bg-[#D1FAE5] text-[#059669]',
-  [OrderStatus.SERVED]:    'bg-[#E5E7EB] text-[#6B7280]',
+  [OrderStatus.PENDING]:   'bg-[#FEF3C7] text-[#92400E]',
+  [OrderStatus.CONFIRMED]: 'bg-[#FEF3C7] text-[#D97706]',
+  [OrderStatus.PREPARING]: 'bg-[#FEF3C7] text-[#D97706]',
+  [OrderStatus.READY]:     'bg-[#FEF3C7] text-[#78350F]',
+  [OrderStatus.SERVED]:    'bg-[#F3F4F6] text-[#6B7280]',
 }
 
 function seatedDuration(dateStr: string): string {
@@ -117,18 +117,18 @@ export default function TablesPage() {
               value={tables.length}
             />
             <StatCard
-              icon={<Users size={18} className="text-red-500" />}
-              iconBg="bg-[#FEE2E2]"
+              icon={<Users size={18} className="text-[#6B7280]" />}
+              iconBg="bg-[#F3F4F6]"
               label="Occupied"
               value={occupiedCount}
-              valueColor="text-red-600"
+              valueColor="text-[#6B7280]"
             />
             <StatCard
-              icon={<CheckCircle size={18} className="text-emerald-600" />}
-              iconBg="bg-[#D1FAE5]"
+              icon={<CheckCircle size={18} className="text-[#78350F]" />}
+              iconBg="bg-[#FEF3C7]"
               label="Available"
               value={availableCount}
-              valueColor="text-emerald-600"
+              valueColor="text-[#78350F]"
             />
             <StatCard
               icon={<Clock size={18} className="text-[#D97706]" />}
@@ -230,8 +230,8 @@ export default function TablesPage() {
               <span
                 className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded ${
                   selectedTable.isOccupied
-                    ? 'bg-red-100 text-red-600'
-                    : 'bg-emerald-100 text-emerald-600'
+                    ? 'bg-[#F3F4F6] text-[#6B7280]'
+                    : 'bg-[#FEF3C7] text-[#78350F]'
                 }`}
               >
                 {selectedTable.isOccupied ? 'Occupied' : 'Available'}
@@ -247,7 +247,7 @@ export default function TablesPage() {
                 </DetailRow>
 
                 <DetailRow label="Seated Duration">
-                  <p className="text-lg font-bold text-red-600">
+                  <p className="text-lg font-bold text-[#D97706]">
                     {seatedDuration(selectedOrder.createdAt)}
                   </p>
                 </DetailRow>
@@ -284,8 +284,8 @@ export default function TablesPage() {
                 onClick={() => toggleTable(selectedTable.id)}
                 className={`w-full py-3.5 text-xs font-bold uppercase tracking-widest rounded transition-colors ${
                   selectedTable.isOccupied
-                    ? 'border border-red-200 text-red-600 hover:bg-red-50'
-                    : 'bg-[#1C1C1E] text-white hover:bg-black'
+                    ? 'border border-[#E5E7EB] text-[#6B7280] hover:bg-[#F3F4F6]'
+                    : 'bg-[#78350F] text-white hover:bg-[#92400E]'
                 }`}
               >
                 {selectedTable.isOccupied ? 'Mark as Available' : 'Mark as Occupied'}
@@ -338,7 +338,7 @@ function TableTile({
         <div className="p-2 flex-1">
           <div className="flex justify-between items-start">
             <span className="text-xs font-bold text-zinc-900">T{table.tableNumber}</span>
-            <span className="w-2 h-2 rounded-full bg-red-500 shrink-0" />
+            <span className="w-2 h-2 rounded-full bg-[#9CA3AF] shrink-0" />
           </div>
           {order && (
             <>
@@ -351,7 +351,7 @@ function TableTile({
             </>
           )}
         </div>
-        <div className="h-1 bg-red-500 w-full shrink-0" />
+        <div className="h-1 bg-[#9CA3AF] w-full shrink-0" />
       </div>
     )
   }
@@ -366,7 +366,7 @@ function TableTile({
           : 'border-[#D1D5DB] bg-[#FAFAFA] hover:border-[#D97706]/40'
       }`}
     >
-      <span className="w-2 h-2 rounded-full bg-emerald-500 mb-1.5" />
+      <span className="w-2 h-2 rounded-full bg-[#D97706] mb-1.5" />
       <span className="text-sm font-bold text-[#9CA3AF]">T{table.tableNumber}</span>
     </div>
   )

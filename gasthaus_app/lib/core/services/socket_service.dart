@@ -78,7 +78,7 @@ class SocketService {
   // URL scheme: ws:// for raw WebSocket (not http:// — that was the SockJS scheme).
   // /ws-native is a dedicated endpoint in WebSocketConfig that omits .withSockJS().
   // /api prefix is required: server.servlet.context-path=/api applies to ALL paths.
-  static const String _wsUrl = 'ws://10.0.2.2:8080/api/ws-native';
+  static const String _wsUrl = 'ws://192.168.100.21:8080/api/ws-native';
 
   StompClient? _client;
   bool _isConnected = false;

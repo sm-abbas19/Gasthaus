@@ -255,6 +255,13 @@ function KitchenCard({
           )}
         </div>
 
+        {/* Special instructions */}
+        {order.notes && (
+          <div className="mt-2 px-2 py-1.5 bg-amber-950/40 border border-amber-500/30 rounded text-[11px] text-amber-400 leading-relaxed">
+            <span className="font-bold">Note: </span>{order.notes}
+          </div>
+        )}
+
         {/* Action button */}
         <div className="mt-3">
           <ActionButton state={state} orderId={order.id} onAction={onAction} />

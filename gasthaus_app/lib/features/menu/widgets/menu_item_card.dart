@@ -164,10 +164,11 @@ class _AvailabilityBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
         // withValues(alpha:) adjusts opacity. 0.93 ≈ 93% opaque.
-        // Available → green tint; Out of Stock → red tint (matches error palette).
-      color: available
-            ? AppColors.successLight.withValues(alpha: 0.93)
-            : AppColors.errorLight.withValues(alpha: 0.93),
+        // Available → dark amber tint (brand identity).
+        // Out of Stock → neutral grey — understated, not alarming red.
+        color: available
+            ? AppColors.primaryLight.withValues(alpha: 0.93)
+            : AppColors.divider.withValues(alpha: 0.97),
         borderRadius: BorderRadius.circular(99),
       ),
       child: Text(
@@ -175,7 +176,7 @@ class _AvailabilityBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w700,
-          color: available ? AppColors.success : AppColors.error,
+          color: available ? AppColors.primaryDark : AppColors.textSecondary,
         ),
       ),
     );

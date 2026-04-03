@@ -25,6 +25,12 @@ void showItemDetail(BuildContext context, MenuItem item) {
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
     useSafeArea: true,
+    // Drag-to-dismiss is disabled because the sheet contains a SingleChildScrollView.
+    // When both gestures are active Flutter's hit-testing is ambiguous — a downward
+    // drag sometimes scrolls the content, sometimes dismisses the sheet, making the
+    // experience feel broken. With enableDrag: false the sheet only closes when the
+    // user taps the barrier outside it or presses back, which is fully predictable.
+    enableDrag: false,
     builder: (_) => ItemDetailSheet(item: item),
   );
 }
@@ -94,22 +100,8 @@ class _ItemDetailSheetState extends State<ItemDetailSheet> {
       cart.updateQuantity(widget.item.id, _quantity);
     }
 
-    // Navigator.of(context).pop() closes the modal bottom sheet.
-    // This is equivalent to the user swiping it down.
+    // Close the sheet — the cart badge updates automatically via CartProvider.
     Navigator.of(context).pop();
-
-    // Show a confirmation snackbar. ScaffoldMessenger is inserted by
-    // MaterialApp, so it's always available regardless of where we are
-    // in the widget tree.
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${widget.item.name} added to cart'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-    );
   }
 
   @override

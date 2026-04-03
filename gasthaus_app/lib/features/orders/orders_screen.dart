@@ -152,22 +152,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
       return _buildEmptyState(provider.selectedFilter);
     }
 
-    return RefreshIndicator(
-      // Pull-to-refresh calls fetchOrders() to reload from the API.
-      // RefreshIndicator requires a scrollable child — ListView qualifies.
-      color: AppColors.primary,
-      onRefresh: () => provider.fetchOrders(),
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
-        itemCount: orders.length,
-        separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, i) => _OrderCard(
-          order: orders[i],
-          dateFmt: _dateFmt,
-          currencyFmt: _currencyFmt,
-          onTrack: () => context.push('/orders/${orders[i].id}'),
-          onReview: () => _openReviewSheet(context, orders[i]),
-        ),
+    // Orders stay current via STOMP WebSocket — no pull-to-refresh needed.
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(20, 4, 20, 32),
+      itemCount: orders.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
+      itemBuilder: (context, i) => _OrderCard(
+        order: orders[i],
+        dateFmt: _dateFmt,
+        currencyFmt: _currencyFmt,
+        onTrack: () => context.push('/orders/${orders[i].id}'),
+        onReview: () => _openReviewSheet(context, orders[i]),
       ),
     );
   }
@@ -330,8 +325,7 @@ class _FilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 9),
         decoration: BoxDecoration(
-          // Selected: dark #1C1C1E. Unselected: white with border.
-          color: isSelected ? AppColors.darkSurface : AppColors.surface,
+          color: isSelected ? AppColors.primaryDark : AppColors.surface,
           borderRadius: BorderRadius.circular(99),
           border: isSelected
               ? null
@@ -509,16 +503,21 @@ class _StatusBadge extends StatelessWidget {
 
   // Returns (backgroundColour, textColour) for a given status string.
   // Dart 3 records let us return two values without creating a class.
+  // Active states use the amber family (brand identity) — escalating from
+  // regular amber → dark amber as the order progresses toward READY.
+  // Terminal states (SERVED, PAID, COMPLETED, CANCELLED) use grey so they
+  // recede visually and the active orders stand out.
   (Color, Color) _colorsForStatus(String s) {
     return switch (s) {
-      'PENDING' => (AppColors.statusPendingBg, AppColors.statusPendingText),
+      'PENDING'   => (AppColors.statusPendingBg,   AppColors.statusPendingText),
       'CONFIRMED' => (AppColors.statusConfirmedBg, AppColors.statusConfirmedText),
       'PREPARING' => (AppColors.statusPreparingBg, AppColors.statusPreparingText),
-      'READY' => (AppColors.statusReadyBg, AppColors.statusReadyText),
-      'SERVED' => (AppColors.statusServedBg, AppColors.statusServedText),
+      'READY'     => (AppColors.statusReadyBg,     AppColors.statusReadyText),
+      'SERVED'    => (AppColors.statusServedBg,    AppColors.statusServedText),
+      'PAID'      => (AppColors.statusCompletedBg, AppColors.statusCompletedText),
       'COMPLETED' => (AppColors.statusCompletedBg, AppColors.statusCompletedText),
       'CANCELLED' => (AppColors.statusCancelledBg, AppColors.statusCancelledText),
-      _ => (AppColors.statusPendingBg, AppColors.statusPendingText),
+      _           => (AppColors.statusPendingBg,   AppColors.statusPendingText),
     };
   }
 }

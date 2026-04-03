@@ -10,6 +10,7 @@ export enum OrderStatus {
   PREPARING = 'PREPARING',
   READY = 'READY',
   SERVED = 'SERVED',
+  PAID = 'PAID',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
 }
@@ -55,6 +56,12 @@ export interface RestaurantTable {
   orders?: Order[]
 }
 
+export interface OrderStatusHistory {
+  id: string
+  status: OrderStatus
+  changedAt: string
+}
+
 export interface Order {
   id: string
   status: OrderStatus
@@ -63,9 +70,11 @@ export interface Order {
   updatedAt: string
   customerId: string
   tableId?: string
+  notes?: string
   items: OrderItem[]
   customer?: User
   table?: RestaurantTable
+  statusHistory?: OrderStatusHistory[]
 }
 
 export interface Review {

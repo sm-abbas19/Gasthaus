@@ -15,7 +15,9 @@ import '../../core/theme/app_text_styles.dart';
 // The 5 statuses shown in the progress stepper, in chronological order.
 // Using a top-level const rather than an instance field keeps this data
 // class-independent and easy to reference in static helper functions.
-const _statusSteps = ['CONFIRMED', 'PREPARING', 'READY', 'SERVED', 'COMPLETED'];
+// PAID replaces COMPLETED as the terminal step — the dashboard marks an order
+// PAID after the customer settles the bill, which triggers the "Done" state here.
+const _statusSteps = ['CONFIRMED', 'PREPARING', 'READY', 'SERVED', 'PAID'];
 const _stepLabels = ['Confirmed', 'Preparing', 'Ready', 'Served', 'Done'];
 
 // OrderTrackingScreen is a StatefulWidget because it:
@@ -125,6 +127,99 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
     super.dispose();
   }
 
+  // An order can only be cancelled while it's still waiting or just confirmed.
+  // Once the kitchen starts preparing it, cancellation is no longer possible.
+  bool get _isCancellable {
+    final s = _order?.status;
+    return s == 'PENDING' || s == 'CONFIRMED';
+  }
+
+  Future<void> _cancelOrder() async {
+    // Re-check before showing dialog in case a STOMP update just arrived.
+    if (!_isCancellable) {
+      _showCannotCancelDialog();
+      return;
+    }
+
+    // Ask for explicit confirmation — cancellation is irreversible.
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cancel order?'),
+        content: const Text(
+          'Are you sure you want to cancel this order? '
+          'This cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Keep order'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Yes, cancel'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    // Guard again — the status may have changed while the dialog was open
+    // (e.g. a STOMP update confirming or starting preparation).
+    if (!_isCancellable) {
+      _showCannotCancelDialog();
+      return;
+    }
+
+    try {
+      await ApiService.instance.dio.patch(
+        '/orders/${widget.orderId}/status',
+        data: {'status': 'CANCELLED'},
+      );
+      // Refresh to get the final CANCELLED state.
+      if (mounted) _fetchOrder();
+    } catch (e) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Could not cancel'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  // Shown when the customer tries to cancel but the order is already in
+  // preparation (or beyond). Kitchen staff have already started working on it.
+  void _showCannotCancelDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Too late to cancel'),
+        content: const Text(
+          'Your order is already being prepared by the kitchen and can no '
+          'longer be cancelled. Please speak to a staff member if you have '
+          'a concern.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _fetchOrder() async {
     try {
       final response =
@@ -174,18 +269,14 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
     // Show "Order #<number>" in the title, falling back to the raw ID while loading.
     final label = _order?.orderNumber ?? widget.orderId;
     return AppBar(
-      // Dark top bar (#1C1C1E) per the stitch design — order tracking feels
-      // more focused/premium than the regular white header pattern.
-      backgroundColor: AppColors.darkSurface,
-      elevation: 0,
-      iconTheme: const IconThemeData(color: Colors.white),
+      // Inherits amber background + white foreground from the app theme.
       leading: IconButton(
         icon: const Icon(Icons.arrow_back),
         // Go to /orders (the Orders tab) rather than popping, because this screen
         // is navigated to via context.go('/orders/$id') which replaces the stack.
         onPressed: () => context.go('/orders'),
       ),
-      title: Text('Order #$label', style: AppTextStyles.topBarTitleLight),
+      title: Text('Order #$label', style: AppTextStyles.topBarTitle),
     );
   }
 
@@ -208,6 +299,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
         _buildOrderItemsSection(order),
         const SizedBox(height: 16),
         _buildViewMenuButton(),
+        // Cancel button — only shown while the order can still be cancelled.
+        // It disappears once the kitchen starts preparing.
+        if (_isCancellable) ...[
+          const SizedBox(height: 12),
+          _buildCancelButton(),
+        ],
       ],
     );
   }
@@ -529,6 +626,31 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen>
       ),
     );
   }
+
+  Widget _buildCancelButton() {
+    // TextButton keeps it visually secondary — less prominent than the main
+    // "View Menu" button so customers don't tap it accidentally.
+    return SizedBox(
+      height: 44,
+      child: TextButton(
+        onPressed: _cancelOrder,
+        style: TextButton.styleFrom(
+          foregroundColor: AppColors.error,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(color: AppColors.error.withValues(alpha: 0.4)),
+          ),
+        ),
+        child: Text(
+          'Cancel Order',
+          style: AppTextStyles.body.copyWith(
+            color: AppColors.error,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -590,13 +712,22 @@ _StatusConfig _statusConfig(String status) {
         icon: Icons.done_all,
         color: AppColors.statusServedText,
         title: 'Order Served',
-        subtitle: 'Enjoy your meal!',
+        // SERVED is no longer terminal — payment is still pending.
+        subtitle: 'Enjoy your meal! Payment to follow.',
         timeLabel: 'Served',
       ),
-    'COMPLETED' => const _StatusConfig(
+    'PAID' => const _StatusConfig(
         icon: Icons.check_circle,
         color: AppColors.statusCompletedText,
-        title: 'Completed',
+        title: 'All Done!',
+        subtitle: 'Payment received. Thank you for dining with us!',
+        timeLabel: 'Done',
+      ),
+    'COMPLETED' => const _StatusConfig(
+        // Legacy status — kept so old orders still display correctly.
+        icon: Icons.check_circle,
+        color: AppColors.statusCompletedText,
+        title: 'All Done!',
         subtitle: 'Thank you for dining with us!',
         timeLabel: 'Done',
       ),

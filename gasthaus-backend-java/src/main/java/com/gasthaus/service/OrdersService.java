@@ -5,11 +5,13 @@ import com.gasthaus.dto.orders.UpdateOrderStatusRequest;
 import com.gasthaus.entity.MenuItem;
 import com.gasthaus.entity.Order;
 import com.gasthaus.entity.OrderItem;
+import com.gasthaus.entity.OrderStatusHistory;
 import com.gasthaus.entity.RestaurantTable;
 import com.gasthaus.entity.User;
 import com.gasthaus.entity.enums.OrderStatus;
 import com.gasthaus.repository.MenuItemRepository;
 import com.gasthaus.repository.OrderRepository;
+import com.gasthaus.repository.OrderStatusHistoryRepository;
 import com.gasthaus.repository.RestaurantTableRepository;
 import com.gasthaus.websocket.OrdersGateway;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +54,7 @@ public class OrdersService {
     private final OrderRepository orderRepository;
     private final MenuItemRepository menuItemRepository;
     private final RestaurantTableRepository tableRepository;
+    private final OrderStatusHistoryRepository historyRepository;
     private final OrdersGateway gateway;
 
     // ─── Status flow validation ────────────────────────────────────
@@ -72,8 +75,9 @@ public class OrdersService {
         STATUS_FLOW.put(OrderStatus.CONFIRMED,  OrderStatus.PREPARING);
         STATUS_FLOW.put(OrderStatus.PREPARING,  OrderStatus.READY);
         STATUS_FLOW.put(OrderStatus.READY,      OrderStatus.SERVED);
-        STATUS_FLOW.put(OrderStatus.SERVED,     OrderStatus.COMPLETED);
-        STATUS_FLOW.put(OrderStatus.COMPLETED,  null);  // terminal state
+        STATUS_FLOW.put(OrderStatus.SERVED,     OrderStatus.PAID);   // SERVED → PAID (dashboard "Mark Paid")
+        STATUS_FLOW.put(OrderStatus.PAID,       null);  // terminal state
+        STATUS_FLOW.put(OrderStatus.COMPLETED,  null);  // terminal state (legacy)
         STATUS_FLOW.put(OrderStatus.CANCELLED,  null);  // terminal state
     }
 
@@ -150,6 +154,7 @@ public class OrdersService {
                 .customer(customer)
                 .table(table)
                 .totalAmount(total)
+                .notes(dto.getNotes())
                 .build();
 
         List<OrderItem> orderItems = dto.getItems().stream()
@@ -169,6 +174,13 @@ public class OrdersService {
 
         // save() cascades to OrderItems via CascadeType.ALL on Order.items
         orderRepository.save(order);
+
+        // Record the initial PENDING status in history.
+        // NestJS equivalent: prisma.orderStatusHistory.create({ data: { orderId: order.id, status: 'PENDING' } })
+        historyRepository.save(OrderStatusHistory.builder()
+                .order(order)
+                .status(OrderStatus.PENDING)
+                .build());
 
         // ── Step 6: Mark table occupied (same transaction) ──
         // NestJS: await tx.restaurantTable.update({ where: { id }, data: { isOccupied: true } })
@@ -208,6 +220,9 @@ public class OrdersService {
      */
     @Transactional(readOnly = true)
     public List<Order> getAllOrders() {
+        // Exclude only truly terminal/uninteresting states.
+        // PAID orders are still returned so the dashboard can show them in the
+        // PAID Kanban column and count them in revenue/total-orders stats.
         return orderRepository.findActiveOrdersWithDetails(
                 List.of(OrderStatus.COMPLETED, OrderStatus.CANCELLED));
     }
@@ -257,9 +272,18 @@ public class OrdersService {
         order.setStatus(dto.getStatus());
         orderRepository.save(order);
 
+        // Record this transition in history so the dashboard can show per-status timestamps.
+        historyRepository.save(OrderStatusHistory.builder()
+                .order(order)
+                .status(dto.getStatus())
+                .build());
+
         // ── Free table when order is terminal ──
         // NestJS: if (status === COMPLETED || status === CANCELLED) table.isOccupied = false
-        if (dto.getStatus() == OrderStatus.COMPLETED || isCancellation) {
+        // PAID is the new terminal success state; COMPLETED kept for legacy orders.
+        if (dto.getStatus() == OrderStatus.PAID
+                || dto.getStatus() == OrderStatus.COMPLETED
+                || isCancellation) {
             RestaurantTable table = order.getTable();
             table.setIsOccupied(false);
             tableRepository.save(table);
