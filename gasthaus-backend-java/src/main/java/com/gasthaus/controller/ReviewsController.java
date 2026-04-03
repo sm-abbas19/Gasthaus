@@ -85,6 +85,23 @@ public class ReviewsController {
     }
 
     /**
+     * GET /api/reviews/my — CUSTOMER only
+     *
+     * Returns a plain list of order UUIDs that the authenticated customer has
+     * already reviewed. Response: ["uuid1", "uuid2", ...]
+     *
+     * Intentionally returns UUIDs (not full Review entities) to avoid
+     * Hibernate lazy-loading serialisation errors (ByteBuddyInterceptor)
+     * that occur when Jackson encounters unloaded LAZY proxies.
+     * The Flutter app only needs the IDs — it uses them to hide "Leave Review".
+     */
+    @GetMapping("/my")
+    @PreAuthorize("hasRole('CUSTOMER')")
+    public List<UUID> getMyReviewedOrderIds(@AuthenticationPrincipal User user) {
+        return reviewsService.getMyReviewedOrderIds(user.getId());
+    }
+
+    /**
      * GET /api/reviews — MANAGER only
      *
      * NestJS:

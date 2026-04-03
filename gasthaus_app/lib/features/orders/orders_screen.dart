@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../core/models/order.dart';
-import '../../core/models/review.dart';
-import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../reviews/write_review_sheet.dart';
@@ -40,18 +39,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Consumer rebuilds this subtree whenever OrdersProvider notifies.
-    // The alternative — context.watch<OrdersProvider>() inside build() —
-    // is equivalent but Consumer makes the rebuild boundary more visible.
     return Consumer<OrdersProvider>(
       builder: (context, provider, _) {
-        return Scaffold(
-          backgroundColor: AppColors.background,
-          body: SafeArea(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        // AnnotatedRegion sets the status bar icons to light (white) while this
+        // screen's dark amber top bar is visible — same pattern as menu screen.
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle.light,
+          child: Scaffold(
+            backgroundColor: AppColors.background,
+            body: Column(
               children: [
-                _buildHeader(),
+                _buildTopBar(),
                 _buildFilterChips(provider),
                 Expanded(child: _buildBody(provider)),
               ],
@@ -62,13 +60,24 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  // The design has a white subheader with the "My Orders" title beneath
-  // the dark top bar of the shell. Since this screen lives inside MainShell
-  // which provides the bottom nav, we just build the header inline here.
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 4),
-      child: Text('My Orders', style: AppTextStyles.screenTitle),
+  // Dark amber top bar matching the menu screen's header style.
+  Widget _buildTopBar() {
+    return Container(
+      color: AppColors.primaryDark,
+      child: SafeArea(
+        bottom: false,
+        child: SizedBox(
+          height: 56,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Text('My Orders', style: AppTextStyles.topBarTitleLight),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -163,6 +172,9 @@ class _OrdersScreenState extends State<OrdersScreen> {
         order: orders[i],
         dateFmt: _dateFmt,
         currencyFmt: _currencyFmt,
+        // Provider already knows which orders are reviewed (fetched alongside
+        // orders at load time) — no per-tap API call needed.
+        isReviewed: provider.isReviewed(orders[i].id),
         onTrack: () => context.push('/orders/${orders[i].id}'),
         onReview: () => _openReviewSheet(context, orders[i]),
       ),
@@ -192,32 +204,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
-  // _openReviewSheet checks whether the order has already been reviewed.
-  // If yes → opens the sheet in read-only mode showing the existing review.
-  // If no  → opens the sheet in write mode so the customer can submit.
-  //
-  // We hit GET /reviews/order/:id first (one small request) rather than loading
-  // review state into OrdersProvider, which keeps the provider focused on orders.
-  Future<void> _openReviewSheet(BuildContext context, Order order) async {
-    // Show a brief loading indicator on the button tap
-    // (the ScaffoldMessenger snackbar approach would be too noisy here).
-    Review? existing;
-    try {
-      final res = await ApiService.instance.dio.get('/reviews/order/${order.id}');
-      final list = res.data as List<dynamic>;
-      if (list.isNotEmpty) {
-        existing = Review.fromJson(list.first as Map<String, dynamic>);
-      }
-    } catch (_) {
-      // Network error — just open write mode; the server will reject duplicates.
-    }
-
-    if (!context.mounted) return;
-
+  // Opens the review sheet in write mode.
+  // "Leave Review" is only shown when isReviewed == false (checked pre-fetch),
+  // so we always open in write mode here. After successful submission,
+  // markReviewed() updates the provider so the button disappears immediately.
+  void _openReviewSheet(BuildContext context, Order order) {
     showOrderReviewSheet(
       context,
       order: order,
-      existingReview: existing,
+      onReviewed: () {
+        // Update provider so the card hides the button without a full re-fetch.
+        context.read<OrdersProvider>().markReviewed(order.id);
+      },
     );
   }
 }
@@ -360,15 +358,15 @@ class _OrderCard extends StatelessWidget {
   final Order order;
   final DateFormat dateFmt;
   final NumberFormat currencyFmt;
+  final bool isReviewed;   // hides "Leave Review" when the order already has one
   final VoidCallback onTrack;
-  // Async because it first fetches existing reviews before opening the sheet.
-  // Using Future<void> Function() instead of VoidCallback allows async lambdas.
-  final Future<void> Function() onReview;
+  final VoidCallback onReview;
 
   const _OrderCard({
     required this.order,
     required this.dateFmt,
     required this.currencyFmt,
+    required this.isReviewed,
     required this.onTrack,
     required this.onReview,
   });
@@ -416,8 +414,9 @@ class _OrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     _StatusBadge(status: order.status),
-                    // "Leave Review" pill — only on COMPLETED orders
-                    if (order.isCompleted) ...[
+                    // "Leave Review" only shown on COMPLETED orders that haven't
+                    // been reviewed yet. isReviewed is pre-computed at fetch time.
+                    if (order.isCompleted && !isReviewed) ...[
                       const SizedBox(height: 6),
                       GestureDetector(
                         onTap: onReview,

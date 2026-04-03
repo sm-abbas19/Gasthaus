@@ -43,7 +43,7 @@ export default function Sidebar() {
   const role = user?.role ?? 'Manager'
 
   return (
-    <aside className="fixed left-0 top-0 h-full w-[240px] bg-[#78350F] z-50 flex flex-col pt-6 pb-5">
+    <aside className="fixed left-0 top-0 h-full w-[240px] bg-[#1C1C1E] z-50 flex flex-col pt-6 pb-5">
       {/* Brand */}
       <div className="px-5 flex items-center gap-2.5">
         <UtensilsCrossed size={17} className="text-white/80 shrink-0" />
@@ -69,8 +69,8 @@ export default function Sidebar() {
               className={[
                 'flex items-center gap-3 px-3 py-[7px] rounded-md text-[12.5px] font-medium transition-all',
                 active
-                  ? 'bg-white/10 text-white border-l-2 border-white/80 pl-[10px]'
-                  : 'text-white/55 hover:text-white/85 hover:bg-white/6 border-l-2 border-transparent pl-[10px]',
+                  ? 'bg-[#2C2C2C] text-white border-l-2 border-[#D97706] pl-[10px]'
+                  : 'text-white/55 hover:text-white/85 hover:bg-white/8 border-l-2 border-transparent pl-[10px]',
               ].join(' ')}
             >
               <Icon size={15} className="text-current shrink-0" />

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 import '../../core/models/order.dart';
-import '../../core/models/review.dart';
 import '../../core/services/api_service.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
@@ -14,62 +12,47 @@ import '../../core/theme/app_text_styles.dart';
 // Public entry point
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Opens the review sheet for the given [order].
+/// Opens the review sheet for the given [order] in write mode.
 ///
-/// If [existingReview] is non-null the sheet opens in READ-ONLY mode,
-/// displaying the review the customer already left.
-/// If null the sheet opens in WRITE mode so the customer can leave a review.
-///
-/// The call site (OrdersScreen) is responsible for fetching the existing review
-/// before calling this function so it can pass the correct mode.
+/// [onReviewed] is called after a successful submission — the orders screen
+/// uses it to call `provider.markReviewed()` so the "Leave Review" button
+/// disappears immediately without a full re-fetch.
 void showOrderReviewSheet(
   BuildContext context, {
   required Order order,
-  Review? existingReview,
+  VoidCallback? onReviewed,
 }) {
-  showModalBottomSheet(
+  showModalBottomSheet<bool>(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => OrderReviewSheet(
-      order: order,
-      existingReview: existingReview,
-    ),
-  );
+    builder: (_) => OrderReviewSheet(order: order),
+  ).then((submitted) {
+    if (submitted == true) onReviewed?.call();
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // OrderReviewSheet widget
 // ─────────────────────────────────────────────────────────────────────────────
 
-// StatefulWidget because write mode has local mutable state (rating, comment,
-// loading flag). Read-only mode uses the same widget with all inputs disabled.
+// Write-only review sheet — the "Leave Review" button is hidden if the order
+// is already reviewed (checked pre-fetch in OrdersProvider), so this sheet
+// always opens in write mode.
 class OrderReviewSheet extends StatefulWidget {
   final Order order;
-  final Review? existingReview; // non-null → read-only mode
 
-  const OrderReviewSheet({
-    super.key,
-    required this.order,
-    this.existingReview,
-  });
+  const OrderReviewSheet({super.key, required this.order});
 
   @override
   State<OrderReviewSheet> createState() => _OrderReviewSheetState();
 }
 
 class _OrderReviewSheetState extends State<OrderReviewSheet> {
-  // In write mode these start at defaults; in read-only mode they're pre-filled
-  // from existingReview and the UI elements are non-interactive.
-  late double _rating;
+  double _rating = 0;
   late final TextEditingController _commentController;
   bool _isSubmitting = false;
   String? _errorMessage;
-
-  // True when the sheet is showing an existing review (read-only).
-  bool get _readOnly => widget.existingReview != null;
-
-  final _dateFmt = DateFormat('MMM d, y');
 
   String get _ratingLabel {
     if (_rating == 0) return 'Tap to rate';
@@ -83,11 +66,7 @@ class _OrderReviewSheetState extends State<OrderReviewSheet> {
   @override
   void initState() {
     super.initState();
-    // Pre-fill from existing review if in read-only mode, otherwise start empty.
-    _rating = widget.existingReview?.rating.toDouble() ?? 0;
-    _commentController = TextEditingController(
-      text: widget.existingReview?.comment ?? '',
-    );
+    _commentController = TextEditingController();
   }
 
   @override
@@ -148,8 +127,7 @@ class _OrderReviewSheetState extends State<OrderReviewSheet> {
                     const SizedBox(height: 24),
                     _buildCommentInput(),
                     const SizedBox(height: 28),
-                    if (!_readOnly) _buildSubmitButton(),
-                    if (_readOnly) _buildReviewedBadge(),
+                    _buildSubmitButton(),
                   ],
                 ),
               ),
@@ -181,23 +159,14 @@ class _OrderReviewSheetState extends State<OrderReviewSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          // Different titles for write vs read-only mode
-          _readOnly ? 'Your Review' : 'Leave a Review',
+          'Leave a Review',
           style: AppTextStyles.screenTitle.copyWith(fontSize: 20),
         ),
         const SizedBox(height: 4),
         Text(
-          // Show the short order ID reference below the title
           'Order #${widget.order.orderNumber}',
           style: AppTextStyles.bodySecondary,
         ),
-        if (_readOnly && widget.existingReview != null) ...[
-          const SizedBox(height: 2),
-          Text(
-            'Submitted ${_dateFmt.format(widget.existingReview!.createdAt.toLocal())}',
-            style: AppTextStyles.caption,
-          ),
-        ],
       ],
     );
   }
@@ -270,13 +239,12 @@ class _OrderReviewSheetState extends State<OrderReviewSheet> {
             itemCount: 5,
             itemSize: 40,
             itemPadding: const EdgeInsets.symmetric(horizontal: 4),
-            ignoreGestures: _readOnly, // disable interaction in read-only mode
             itemBuilder: (context, _) => const Icon(
               Icons.star_rounded,
               color: AppColors.primary,
             ),
             unratedColor: AppColors.border,
-            onRatingUpdate: _readOnly ? (_) {} : (v) => setState(() => _rating = v),
+            onRatingUpdate: (v) => setState(() => _rating = v),
           ),
         ),
         const SizedBox(height: 8),
@@ -305,20 +273,15 @@ class _OrderReviewSheetState extends State<OrderReviewSheet> {
               controller: _commentController,
               maxLines: 4,
               maxLength: 500,
-              // Read-only mode: disable keyboard and editing
-              readOnly: _readOnly,
-              enabled: !_readOnly,
               maxLengthEnforcement: MaxLengthEnforcement.enforced,
               style: AppTextStyles.body.copyWith(fontSize: 13),
               decoration: InputDecoration(
                 counterText: '',
-                hintText: _readOnly
-                    ? 'No written comment'
-                    : 'Tell others about your experience…',
+                hintText: 'Tell others about your experience…',
                 hintStyle: AppTextStyles.body
                     .copyWith(color: AppColors.textMuted, fontSize: 13),
                 filled: true,
-                fillColor: _readOnly ? AppColors.divider : AppColors.surface,
+                fillColor: AppColors.surface,
                 contentPadding: const EdgeInsets.all(16),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -328,20 +291,15 @@ class _OrderReviewSheetState extends State<OrderReviewSheet> {
                   borderRadius: BorderRadius.circular(10),
                   borderSide: const BorderSide(color: AppColors.border),
                 ),
-                disabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: const BorderSide(color: AppColors.border),
-                ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                   borderSide:
                       const BorderSide(color: AppColors.primary, width: 1.5),
                 ),
               ),
-              onChanged: _readOnly ? null : (_) => setState(() {}),
+              onChanged: (_) => setState(() {}),
             ),
-            if (!_readOnly)
-              Padding(
+            Padding(
                 padding: const EdgeInsets.only(right: 12, bottom: 10),
                 child: Text(
                   '${_commentController.text.length}/500',
@@ -414,31 +372,4 @@ class _OrderReviewSheetState extends State<OrderReviewSheet> {
     );
   }
 
-  // Shown in read-only mode instead of the submit button — a subtle badge
-  // confirming the review was already submitted.
-  Widget _buildReviewedBadge() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 14),
-      decoration: BoxDecoration(
-        color: AppColors.divider,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.check_circle_outline,
-              size: 16, color: AppColors.textSecondary),
-          const SizedBox(width: 8),
-          Text(
-            'Review submitted',
-            style: AppTextStyles.body.copyWith(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 }

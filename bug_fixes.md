@@ -268,3 +268,48 @@ Review model had `menuItemId` as required and a `@@unique([customerId, menuItemI
 - **Profile badge:** Removed non-functional REVIEWS `_StatCell`.
 - **Search:** Orders filter now also matches against order ID string.
 
+---
+
+## BF-013 — Reviewed orders still showed Leave Review and triggered duplicate-review error
+
+**Files:** `gasthaus_app/lib/features/orders/orders_provider.dart`, `gasthaus-backend-java/src/main/java/com/gasthaus/repository/ReviewRepository.java`
+
+**Date:** 2026-04-03
+
+### What
+On the Flutter Orders screen, some orders that were already reviewed still showed the **Leave Review** action. Tapping it opened the review sheet, and submitting failed with "You have already reviewed this order" from the backend.
+
+### Why
+The UI depended on `GET /reviews/my` to pre-load reviewed order IDs. If that request failed or returned an unexpected shape, `OrdersProvider` silently fell back to an empty reviewed set, which made all completed orders appear reviewable.
+
+### Fix
+- **Flutter:** Hardened reviewed-ID resolution in `OrdersProvider`:
+  - Normalize IDs (lowercase/trim) for reliable matching.
+  - Parse multiple payload shapes for compatibility.
+  - Add fallback logic: if bulk `GET /reviews/my` cannot be resolved, call `GET /reviews/order/:id` for completed orders and mark those with non-empty review lists as reviewed.
+  - Keep `markReviewed()` normalized so the button disappears immediately after successful submission.
+- **Spring Boot:** Updated reviewed-id repository query to return `DISTINCT` non-null order IDs (`SELECT DISTINCT r.order.id ... AND r.order IS NOT NULL`) for a cleaner and safer response set.
+
+---
+
+## BF-014 — Order-level review insert failed due to stale NOT NULL on menu_item_id
+
+**Files:** `gasthaus-backend-java/src/main/java/com/gasthaus/config/SchemaCompatibilityMigration.java`
+
+**Date:** 2026-04-03
+
+### What
+After migrating reviews from item-based to order-based, posting a review failed with:
+`null value in column "menu_item_id" of relation "reviews" violates not-null constraint`.
+
+### Why
+Application code was updated correctly (`Review.menuItem` nullable, request no longer sends `menuItemId`), but the live PostgreSQL schema still had `gasthaus_java.reviews.menu_item_id` as `NOT NULL` from the old model. Hibernate `ddl-auto=update` did not relax that nullability on this existing table.
+
+### Fix
+- Added an idempotent startup migration component (`SchemaCompatibilityMigration`) that:
+  - Detects schema/column metadata from `information_schema`.
+  - Drops `NOT NULL` from `reviews.menu_item_id` when needed.
+  - Ensures `uk_review_customer_order` unique constraint exists for order-level review integrity.
+- Applied the SQL fix to the current local DB immediately:
+  `ALTER TABLE gasthaus_java.reviews ALTER COLUMN menu_item_id DROP NOT NULL;`
+

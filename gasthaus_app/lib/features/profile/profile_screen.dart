@@ -41,26 +41,25 @@ class ProfileScreen extends StatelessWidget {
             context,
             label: 'ACCOUNT',
             items: [
+              // Full Name, Email, Change Password are not yet wired to the backend.
+              // disabled: true greys them out and removes the tap affordance so the
+              // user knows they're read-only for now.
               _SettingsRow(
                 icon: Icons.person_outline,
                 label: 'Full Name',
                 value: user.name,
-                onTap: () => _showEditNameDialog(context, user),
+                disabled: true,
               ),
               _SettingsRow(
                 icon: Icons.email_outlined,
                 label: 'Email Address',
                 value: user.email,
-                onTap: () => _showInfoDialog(
-                  context,
-                  title: 'Email Address',
-                  value: user.email,
-                ),
+                disabled: true,
               ),
               _SettingsRow(
                 icon: Icons.lock_outline,
                 label: 'Change Password',
-                onTap: () => _showChangePasswordDialog(context),
+                disabled: true,
               ),
             ],
           ),
@@ -539,45 +538,55 @@ class _StatCell extends StatelessWidget {
 class _SettingsRow extends StatelessWidget {
   final IconData icon;
   final String label;
-  final String? value; // optional subtitle shown below label
-  final VoidCallback onTap;
+  final String? value;    // optional subtitle shown below label
+  final VoidCallback? onTap;
+  // disabled: true greys everything out and removes the tap affordance.
+  // Used for features not yet wired to the backend (Full Name, Email, Password).
+  final bool disabled;
 
   const _SettingsRow({
     required this.icon,
     required this.label,
     this.value,
-    required this.onTap,
+    this.onTap,
+    this.disabled = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Material + InkWell gives a proper touch ripple scoped to the row.
-    // We use Material(color: transparent) to keep the parent card's background
-    // visible while still getting the ink effect.
+    // Greyed-out colour used for all content when the row is disabled.
+    final contentColor = disabled ? AppColors.textMuted : AppColors.textSecondary;
+
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onTap,
+        // Disabled rows are not tappable — onTap is null so InkWell shows no ripple.
+        onTap: disabled ? null : onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             children: [
-              Icon(icon, size: 22, color: AppColors.textSecondary),
+              Icon(icon, size: 22, color: contentColor),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(label, style: AppTextStyles.body.copyWith(
-                      fontWeight: FontWeight.w500,
-                    )),
-                    // If a current value is provided, show it as a subtitle
+                    Text(
+                      label,
+                      style: AppTextStyles.body.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: disabled ? AppColors.textMuted : AppColors.textPrimary,
+                      ),
+                    ),
                     if (value != null) ...[
                       const SizedBox(height: 2),
                       Text(
                         value!,
                         style: AppTextStyles.bodySecondary.copyWith(
-                            fontSize: 12),
+                          fontSize: 12,
+                          color: contentColor,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -585,8 +594,13 @@ class _SettingsRow extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right,
-                  size: 20, color: AppColors.textMuted),
+              // Disabled rows show a lock icon instead of a chevron to signal
+              // the feature is not yet available rather than just unresponsive.
+              Icon(
+                disabled ? Icons.lock_outline : Icons.chevron_right,
+                size: disabled ? 16 : 20,
+                color: contentColor,
+              ),
             ],
           ),
         ),

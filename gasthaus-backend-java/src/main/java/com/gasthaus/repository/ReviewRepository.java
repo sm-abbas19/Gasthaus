@@ -60,6 +60,20 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findByOrderId(@Param("orderId") UUID orderId);
 
     /**
+     * Returns just the order UUIDs that a customer has already reviewed.
+     * The Flutter app only needs these IDs to hide the "Leave Review" button —
+     * returning full Review entities would cause Hibernate lazy-loading serialisation
+     * errors (ByteBuddyInterceptor) since customer/menuItem/order are all LAZY.
+     * Selecting r.order.id (the FK value) is resolved without loading the Order proxy.
+     */
+    @Query("""
+            SELECT DISTINCT r.order.id FROM Review r
+            WHERE r.customer.id = :customerId
+              AND r.order IS NOT NULL
+            """)
+    List<UUID> findReviewedOrderIdsByCustomerId(@Param("customerId") UUID customerId);
+
+    /**
      * MANAGER dashboard: fetch all reviews with customer eagerly loaded.
      * LEFT JOIN FETCH r.menuItem handles the nullable menuItem on order-level reviews —
      * without LEFT, reviews with no menuItem would be excluded from results.

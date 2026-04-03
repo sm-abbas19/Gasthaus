@@ -113,6 +113,17 @@ public class ReviewsService {
     }
 
     /**
+     * Returns only the order UUIDs that this customer has already reviewed.
+     * Returning full Review entities would trigger Hibernate lazy-loading
+     * serialisation errors (ByteBuddyInterceptor on unloaded proxies).
+     * The Flutter app only needs the IDs to hide the "Leave Review" button.
+     */
+    @Transactional(readOnly = true)
+    public List<UUID> getMyReviewedOrderIds(UUID customerId) {
+        return reviewRepository.findReviewedOrderIdsByCustomerId(customerId);
+    }
+
+    /**
      * MANAGER-only: returns all reviews for the reviews dashboard.
      */
     @Transactional(readOnly = true)
