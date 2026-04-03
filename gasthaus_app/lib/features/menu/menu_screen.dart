@@ -85,19 +85,27 @@ class _MenuScreenState extends State<MenuScreen> {
           // header section with a scrollable grid. It uses "slivers" —
           // Flutter's term for scrollable sections of a scroll view.
           //
-          // SliverToBoxAdapter wraps non-scrollable widgets so they can
-          // live inside a CustomScrollView.
-          // SliverGrid renders only the visible grid items, reusing cells
-          // as you scroll (similar to RecyclerView in Android).
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(child: _buildGreeting(tableNumber)),
-              SliverToBoxAdapter(child: _buildSearchBar()),
-              SliverToBoxAdapter(child: _buildCategoryChips()),
-              _buildMenuGrid(),
-              // Bottom padding so the last row isn't hidden behind the nav bar.
-              const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
-            ],
+          // RefreshIndicator detects an overscroll drag and calls onRefresh.
+          // It must wrap a scrollable — here the CustomScrollView.
+          // The Future returned by onRefresh drives the spinner: it stays
+          // visible until loadMenu() completes.
+          child: RefreshIndicator(
+            color: AppColors.primary,
+            onRefresh: () => context.read<MenuProvider>().loadMenu(),
+            child: CustomScrollView(
+              // physics must allow overscroll for RefreshIndicator to trigger.
+              // AlwaysScrollableScrollPhysics ensures this even when the content
+              // is shorter than the viewport (e.g. only 2 items in the grid).
+              physics: const AlwaysScrollableScrollPhysics(),
+              slivers: [
+                SliverToBoxAdapter(child: _buildGreeting(tableNumber)),
+                SliverToBoxAdapter(child: _buildSearchBar()),
+                SliverToBoxAdapter(child: _buildCategoryChips()),
+                _buildMenuGrid(),
+                // Bottom padding so the last row isn't hidden behind the nav bar.
+                const SliverPadding(padding: EdgeInsets.only(bottom: 16)),
+              ],
+            ),
           ),
         ),
       ],
@@ -311,49 +319,72 @@ class _MenuScreenState extends State<MenuScreen> {
 
   // ─── Menu Grid ────────────────────────────────────────────────────────────
 
+  // Shared grid layout delegate — same proportions for both real items and shimmer.
+  static const _gridDelegate = SliverGridDelegateWithFixedCrossAxisCount(
+    crossAxisCount: 2,
+    crossAxisSpacing: 10,
+    mainAxisSpacing: 10,
+    // childAspectRatio = width / height. 0.82 gives enough room for the
+    // 4:3 image + name + price + bottom padding.
+    childAspectRatio: 0.82,
+  );
+
   Widget _buildMenuGrid() {
+    // IMPORTANT: this Consumer is placed directly in a CustomScrollView slivers
+    // list. Flutter requires every widget in that list to resolve to a
+    // RenderSliver. Consumer is a ComponentElement (no RenderObject of its own),
+    // so Flutter looks through it to its child's RenderObject. This works
+    // ONLY if the builder ALWAYS returns the same outer sliver type.
+    //
+    // Previously the builder returned SliverPadding (loading/data) OR
+    // SliverToBoxAdapter (empty/error). Switching outer sliver types mid-session
+    // corrupts the viewport's child list and crashes the app.
+    //
+    // Fix: ALWAYS return SliverPadding. Change only the *inner* sliver
+    // (SliverGrid vs SliverToBoxAdapter) so the outer type is stable.
     return Consumer<MenuProvider>(
       builder: (context, menu, _) {
-        // Show shimmer skeleton grid while the first fetch is in flight.
-        // Shimmer gives users a visual hint of the content shape before
-        // data arrives — much better UX than a spinner in the middle of a grid.
+        // ── Loading state: shimmer skeleton grid ──────────────────────────
+        // Shimmer gives users a visual hint of the content shape before data
+        // arrives — better UX than a spinner in the center of the grid.
         if (menu.isLoading) {
           return SliverPadding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
             sliver: SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                childAspectRatio: 0.82,
-              ),
+              gridDelegate: _gridDelegate,
               delegate: SliverChildBuilderDelegate(
-                (context, _) => const _MenuItemShimmer(),
-                childCount: 6, // show 6 ghost cards
+                (_, _) => const _MenuItemShimmer(),
+                childCount: 6, // 6 ghost cards to fill two rows
               ),
             ),
           );
         }
 
-        // Show error state with a retry button.
+        // ── Error state ───────────────────────────────────────────────────
+        // SliverToBoxAdapter wraps a regular (box) widget so it can live
+        // inside a SliverPadding as its inner sliver.
         if (menu.error != null) {
-          return SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 48),
-              child: Column(
-                children: [
-                  const Icon(Icons.wifi_off_rounded,
-                      size: 48, color: AppColors.textMuted),
-                  const SizedBox(height: 12),
-                  Text(menu.error!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: AppColors.textSecondary)),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: menu.loadMenu,
-                    child: const Text('Retry'),
-                  ),
-                ],
+          return SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            sliver: SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 48),
+                child: Column(
+                  children: [
+                    const Icon(Icons.wifi_off_rounded,
+                        size: 48, color: AppColors.textMuted),
+                    const SizedBox(height: 12),
+                    Text(menu.error!,
+                        textAlign: TextAlign.center,
+                        style:
+                            const TextStyle(color: AppColors.textSecondary)),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: menu.loadMenu,
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -361,31 +392,29 @@ class _MenuScreenState extends State<MenuScreen> {
 
         final items = menu.filteredItems;
 
+        // ── Empty state ───────────────────────────────────────────────────
         if (items.isEmpty) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.only(top: 60),
-              child: Center(
-                child: Text('No items found.',
-                    style: TextStyle(color: AppColors.textSecondary)),
+          return const SliverPadding(
+            padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
+            sliver: SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.only(top: 60),
+                child: Center(
+                  child: Text('No items found.',
+                      style: TextStyle(color: AppColors.textSecondary)),
+                ),
               ),
             ),
           );
         }
 
-        // SliverGrid renders grid cells lazily — only what's on screen.
-        // SliverGridDelegateWithFixedCrossAxisCount gives a fixed 2-column layout.
-        // childAspectRatio = width / height. 0.82 gives enough height for
-        // the 4:3 image + name + price + bottom padding.
+        // ── Data state: real menu grid ────────────────────────────────────
+        // SliverGrid renders cells lazily — only visible cells are built,
+        // recycled as the user scrolls (similar to RecyclerView on Android).
         return SliverPadding(
           padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
           sliver: SliverGrid(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.82,
-            ),
+            gridDelegate: _gridDelegate,
             delegate: SliverChildBuilderDelegate(
               (context, index) {
                 final item = items[index];

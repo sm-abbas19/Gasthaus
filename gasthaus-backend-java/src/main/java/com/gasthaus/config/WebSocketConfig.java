@@ -2,6 +2,9 @@ package com.gasthaus.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -49,10 +52,23 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      * SockJS is compatible with @stomp/stompjs's SockJS transport option.
      */
     @Override
+    @SuppressWarnings("NullableProblems")
     public void registerStompEndpoints(StompEndpointRegistry registry) {
+        // SockJS endpoint — used by the Next.js browser dashboard.
+        // SockJS performs an HTTP negotiation handshake before upgrading to WebSocket,
+        // which works around browser restrictions on raw WebSocket in some environments.
         registry.addEndpoint("/ws")
                 .setAllowedOriginPatterns("*")
                 .withSockJS();
+
+        // Raw WebSocket endpoint — used by the Flutter mobile app.
+        // Native Flutter has first-class WebSocket support and does NOT need SockJS.
+        // SockJS on a native client can fall back to HTTP long-polling, which only
+        // delivers one message per poll cycle and misses subsequent pushes.
+        // Raw WebSocket maintains a persistent bidirectional connection that delivers
+        // every message reliably — this is the correct transport for Flutter.
+        registry.addEndpoint("/ws-native")
+                .setAllowedOriginPatterns("*");
     }
 
     /**
@@ -63,15 +79,45 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
      *   in-memory broker and broadcast to all subscribed clients.
      *   NestJS equivalent: this.server.emit('event', data) → broadcasts to all.
      *
+     * setTaskScheduler() — required for the simple broker to send STOMP heartbeat
+     *   frames to connected clients. Without a TaskScheduler, the broker cannot
+     *   schedule the periodic heartbeat task, so it never sends heartbeats.
+     *   STOMP clients that request incoming heartbeats (heartbeatIncoming > 0)
+     *   will declare the connection dead when no heartbeat arrives, causing
+     *   constant reconnect cycles and missed push notifications.
+     *   NestJS/Socket.io handles this automatically via its ping/pong mechanism.
+     *
      * setApplicationDestinationPrefixes("/app"):
-     *   Messages sent by clients to /app/... are routed to @MessageMapping methods
-     *   (controller handlers). We don't use client-to-server messages in this phase,
-     *   but the prefix is needed if we add them later.
+     *   Messages sent by clients to /app/... are routed to @MessageMapping methods.
      *   NestJS equivalent: @SubscribeMessage('event') on the gateway class.
      */
     @Override
+    @SuppressWarnings("NullableProblems")
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic", "/queue")
+              .setHeartbeatValue(new long[]{10000, 10000})
+              .setTaskScheduler(brokerTaskScheduler());
         config.setApplicationDestinationPrefixes("/app");
+    }
+
+    /**
+     * Dedicated scheduler for the STOMP message broker's heartbeat task.
+     *
+     * NestJS equivalent: none needed — Socket.io handles ping/pong internally.
+     *
+     * Why a separate scheduler?
+     *   Spring's simple broker needs a scheduled thread to send heartbeat frames
+     *   at a fixed interval. Without one, setHeartbeatValue() is ignored and no
+     *   heartbeats are ever sent. A pool size of 1 is enough — heartbeats are
+     *   lightweight and infrequent (one frame per client per 10 seconds).
+     */
+    @Bean
+    @SuppressWarnings("NullableProblems")
+    public TaskScheduler brokerTaskScheduler() {
+        ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
+        scheduler.setPoolSize(1);
+        scheduler.setThreadNamePrefix("ws-heartbeat-");
+        scheduler.initialize();
+        return scheduler;
     }
 }

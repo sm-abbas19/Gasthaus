@@ -20,6 +20,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +54,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MenuService {
 
+    private static final Logger log = LoggerFactory.getLogger(MenuService.class);
+
     private final MenuCategoryRepository categoryRepository;
     private final MenuItemRepository itemRepository;
 
@@ -69,7 +74,10 @@ public class MenuService {
      * not the full menu data (that would be a large WebSocket message).
      */
     private void broadcastMenuUpdate() {
+        long tsMs = System.currentTimeMillis();
+        log.info("[MENU-WS] Broadcasting menu update to /topic/menu at {} ms", tsMs);
         messagingTemplate.convertAndSend("/topic/menu", Map.of("event", "updated"));
+        log.info("[MENU-WS] Broadcast sent at {} ms", System.currentTimeMillis());
     }
 
     // ─── Cloudinary setup ─────────────────────────────────────────
@@ -292,8 +300,12 @@ public class MenuService {
     @CacheEvict(value = "menu:categories", allEntries = true)
     public MenuItem toggleAvailability(UUID id) {
         MenuItem item = findItemOrFail(id);
-        item.setIsAvailable(!item.getIsAvailable());
+        boolean newValue = !item.getIsAvailable();
+        log.info("[MENU-TOGGLE] Item '{}' (id={}) toggled: isAvailable {} -> {}",
+                item.getName(), id, item.getIsAvailable(), newValue);
+        item.setIsAvailable(newValue);
         MenuItem saved = itemRepository.save(item);
+        log.info("[MENU-TOGGLE] DB save complete. Saved isAvailable={}", saved.getIsAvailable());
         broadcastMenuUpdate();
         return saved;
     }

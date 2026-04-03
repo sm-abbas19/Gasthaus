@@ -51,9 +51,17 @@ public class OrdersGateway {
     /**
      * NestJS: this.server.emit('order:status', order)
      * Broadcasts a status change — all clients (staff + customer) listen.
+     *
+     * Two destinations are sent:
+     * 1. /topic/order.status — generic topic for the staff dashboard (subscribes to all orders)
+     * 2. /topic/orders/{orderId} — per-order topic for the Flutter customer app.
+     *    The Flutter OrderTrackingScreen subscribes to this specific destination so it only
+     *    receives updates for the order it is currently showing.
      */
+    @SuppressWarnings("NullableProblems")
     public void emitOrderStatusUpdate(Order order) {
         messaging.convertAndSend("/topic/order.status", order);
+        messaging.convertAndSend("/topic/orders/" + order.getId(), order);
     }
 
     /**

@@ -18,11 +18,17 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
 
   /// Called at app startup to restore saved session.
+  /// Also connects the WebSocket so real-time features work without a fresh login.
+  /// Without this, restoring a saved session skips login() entirely, meaning
+  /// SocketService.connect() was never called and STOMP never connected —
+  /// breaking all real-time updates (menu push, order status, etc.).
   Future<void> restoreSession() async {
     final token = await AuthStorage.instance.getToken();
     final user = await AuthStorage.instance.getUser();
     if (token != null && user != null) {
       _currentUser = user;
+      // Connect WebSocket for restored sessions — same as we do after login().
+      unawaited(SocketService.instance.connect());
       notifyListeners();
     }
   }

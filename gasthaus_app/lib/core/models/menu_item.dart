@@ -30,7 +30,10 @@ class MenuItem {
       description: json['description'] ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       imageUrl: json['imageUrl'],
-      available: json['available'] ?? true,
+      // Backend field is `isAvailable` (Java Boolean with Lombok @Getter →
+      // getter is getIsAvailable() → Jackson serializes key as "isAvailable").
+      // Falling back to json['available'] covers any future API normalisation.
+      available: json['isAvailable'] ?? json['available'] ?? true,
       categoryId: json['categoryId']?.toString() ?? '',
       categoryName: json['categoryName'] ?? '',
       averageRating: (json['averageRating'] as num?)?.toDouble(),

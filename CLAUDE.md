@@ -170,6 +170,21 @@ Phase 7: AI proxy (calls FastAPI same as NestJS version)
 
 ---
 
+## Bug Fixes Log
+
+All bugs fixed in this project are documented in `bug_fixes.md` at the repo root.
+
+**Policy:** whenever a bug is fixed, add an entry to `bug_fixes.md` with:
+- A short ID (BF-001, BF-002, …)
+- The file(s) changed
+- **What** the bug was (symptom)
+- **Why** it happened (root cause)
+- **Fix** summary (what changed and why it works)
+
+This log is append-only — never remove or edit existing entries.
+
+---
+
 ## Code Comments Policy (Flutter App)
 
 The user is studying Flutter and Dart through this project.

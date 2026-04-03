@@ -44,19 +44,41 @@ class MenuProvider extends ChangeNotifier {
   // the method that returns a Future.
   MenuProvider() {
     loadMenu();
-    _subscribeToMenuUpdates();
+    _registerMenuConnectListener();
     _startPolling();
   }
 
-  // Subscribe to /topic/menu WebSocket events.
-  // The backend broadcasts to this topic after any menu mutation (add/edit/
-  // delete/toggle). We simply call loadMenu() on receipt — no need to parse
-  // the payload since it's just a "something changed" signal.
-  void _subscribeToMenuUpdates() {
-    SocketService.instance.subscribeToMenu(() {
-      // Reload silently — don't show the loading spinner for background refreshes
-      // so the existing menu stays visible while the new data loads.
-      _silentReload();
+  // Register a connectListener so that subscribeToMenu() is called AFTER the
+  // STOMP connection is confirmed ready (_isConnected=true).
+  //
+  // Why not call subscribeToMenu() directly in the constructor?
+  //   MenuProvider is created at app startup (main.dart), BEFORE the user logs
+  //   in and before SocketService.connect() is called. At that point _isConnected
+  //   is false. Calling subscribeToMenu() directly stores the callback in
+  //   _callbacks, which _onConnect then tries to activate. But stomp_dart_client's
+  //   subscribe() behaves differently when called from INSIDE the onConnect handler
+  //   vs. called AFTER it returns — the former can silently fail to register the
+  //   subscription with the server.
+  //
+  // How connectListeners fix this:
+  //   SocketService._onConnect fires → sets _isConnected=true → fires all
+  //   connectListeners → this listener calls subscribeToMenu() → _isConnected is
+  //   now true → _doSubscribe() is called immediately (not deferred). This is the
+  //   EXACT same code path as OrderTrackingScreen.initState(), which is why orders
+  //   work instantly and menus didn't.
+  //
+  // The listener also fires on every reconnect, so the subscription is always
+  // re-established after a connection drop without any extra code.
+  void _registerMenuConnectListener() {
+    debugPrint('[MENU] Registering connect listener for /topic/menu.');
+    SocketService.instance.addConnectListener('menu', () {
+      debugPrint('[MENU] connectListener fired — calling subscribeToMenu.');
+      SocketService.instance.subscribeToMenu(() {
+        // Reload silently — don't show the loading spinner for background refreshes
+        // so the existing menu stays visible while the new data loads.
+        debugPrint('[MENU] STOMP push callback fired at ${DateTime.now().millisecondsSinceEpoch} ms — calling _silentReload.');
+        _silentReload();
+      });
     });
   }
 
@@ -75,16 +97,31 @@ class MenuProvider extends ChangeNotifier {
   // Used for background refreshes (WebSocket push or polling) so the user
   // doesn't see the shimmer flash on data they already have on screen.
   Future<void> _silentReload() async {
+    // Log to confirm reload was triggered (either by STOMP push or polling).
+    final reloadStart = DateTime.now().millisecondsSinceEpoch;
+    debugPrint('[MENU] _silentReload started at $reloadStart ms.');
     try {
-      final response = await ApiService.instance.dio.get('/menu/categories');
+      // ?all=true tells the backend to return ALL items including unavailable ones,
+      // so the Flutter app can display them as "Out of Stock" instead of hiding them.
+      final response = await ApiService.instance.dio.get('/menu/categories',
+          queryParameters: {'all': 'true'});
       final data = response.data as List;
       _categories = data
           .map((c) => Category.fromJson(c as Map<String, dynamic>))
           .toList();
+      // Log a summary so we can see what the backend returned.
+      final totalItems = _categories.fold<int>(0, (sum, c) => sum + c.items.length);
+      final unavailableItems =
+          _categories.expand((c) => c.items).where((i) => !i.available).length;
+      final reloadEnd = DateTime.now().millisecondsSinceEpoch;
+      debugPrint('[MENU] _silentReload complete at $reloadEnd ms '
+          '(took ${reloadEnd - reloadStart} ms): ${_categories.length} categories, '
+          '$totalItems items ($unavailableItems unavailable). Calling notifyListeners.');
       notifyListeners();
-    } catch (_) {
+    } catch (e) {
       // Silently ignore errors on background refreshes — the user already
       // has menu data on screen. Errors during manual loadMenu() still show.
+      debugPrint('[MENU] _silentReload ERROR: $e');
     }
   }
 
@@ -95,6 +132,9 @@ class MenuProvider extends ChangeNotifier {
   @override
   void dispose() {
     _pollTimer?.cancel();
+    // Remove the connect listener so it doesn't fire on future reconnects
+    // after this provider has been garbage-collected.
+    SocketService.instance.removeConnectListener('menu');
     SocketService.instance.unsubscribeFromMenu();
     super.dispose();
   }
@@ -106,9 +146,12 @@ class MenuProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // GET /menu/categories returns a JSON array of categories, each
-      // containing a `menuItems` array. The Category.fromJson handles this.
-      final response = await ApiService.instance.dio.get('/menu/categories');
+      // GET /menu/categories?all=true returns ALL items including unavailable ones.
+      // Without ?all=true the backend filters to isAvailable=true only, causing
+      // unavailable items to vanish from the Flutter app on the next reload.
+      // With ?all=true we receive them with available=false and show "Out of Stock".
+      final response = await ApiService.instance.dio.get('/menu/categories',
+          queryParameters: {'all': 'true'});
       final data = response.data as List;
       _categories = data
           .map((c) => Category.fromJson(c as Map<String, dynamic>))
