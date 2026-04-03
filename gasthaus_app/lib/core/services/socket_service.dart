@@ -304,12 +304,25 @@ class SocketService {
   // disconnect is called on logout. Deactivating stops the library's reconnect
   // timer and closes the WebSocket. _client is nulled so the next login's
   // connect() creates a fresh client with the new user's JWT.
+  //
+  // Why NOT clear _connectListeners or _callbacks here?
+  //   These represent durable intent — "when connected, subscribe to X" — that
+  //   is registered once at app startup (e.g. MenuProvider's constructor) and
+  //   must survive across logout/login cycles.
+  //
+  //   If they were cleared, logging out and back in would leave _connectListeners
+  //   and _callbacks empty. The next _onConnect would fire with 0 listeners and
+  //   0 callbacks — no subscriptions would be re-established, and real-time
+  //   pushes would be silently lost until the app is fully restarted.
+  //
+  //   _subscriptions IS cleared because active STOMP subscription handles are
+  //   connection-specific and cannot be reused across sessions.
   void disconnect() {
     _client?.deactivate();
     _client = null;
     _isConnected = false;
     _subscriptions.clear();
-    _callbacks.clear();
-    _connectListeners.clear();
+    // Do NOT clear _callbacks or _connectListeners — they are durable
+    // registrations from long-lived providers and must survive logout/login.
   }
 }

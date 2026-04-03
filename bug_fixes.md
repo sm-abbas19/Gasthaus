@@ -184,3 +184,19 @@ The `CustomScrollView` had no `RefreshIndicator` wrapper, so the overscroll gest
 Wrapped the `CustomScrollView` in a `RefreshIndicator` (amber spinner, calls `menu.loadMenu()`) and added `physics: AlwaysScrollableScrollPhysics()` to ensure pull-to-refresh works even when the grid has few items.
 
 ---
+
+## BF-010 — STOMP menu push not received after logout/login cycle
+
+**File:** `gasthaus_app/lib/core/services/socket_service.dart`  
+**Date:** 2026-04-03
+
+### What
+After logging out and logging back in, menu availability changes from the dashboard produced no instant update in the Flutter app. STOMP was technically connected (logs showed `*** CONNECTED ***`), but `[STOMP] Firing 0 connectListener(s): []` confirmed no subscriptions were re-established. The server was broadcasting correctly (Java logs showed `[MENU-WS] Broadcast sent`) but Flutter never received the pushes — only the 60-second polling fallback ever updated the UI.
+
+### Why
+`disconnect()` called `_connectListeners.clear()` and `_callbacks.clear()`. `MenuProvider` registers its connect listener once at app startup in its constructor — it never re-registers. After `logout()` → `disconnect()` cleared the maps, the next `login()` → `connect()` created a new `StompClient` and `_onConnect` fired with 0 listeners and 0 callbacks. No subscription to `/topic/menu` was ever sent to the server, so all subsequent broadcasts were silently lost.
+
+### Fix
+Removed `_callbacks.clear()` and `_connectListeners.clear()` from `disconnect()`. These hold durable subscription intent from providers that live for the app's lifetime and must survive logout/login cycles. Only `_subscriptions` (connection-specific STOMP handles) is cleared on disconnect, as those cannot be reused across sessions. On the next login `_onConnect` fires → finds 1 connect listener ('menu') → calls `subscribeToMenu()` with `_isConnected=true` → `_doSubscribe()` runs immediately, same path as the working order screen.
+
+---
